@@ -1,9 +1,11 @@
 int main()
 {
 	int x ;
-	unsigned int y ;
+	int y ;
+	int z ;
 
-	x = 1+2;
-	y = x+3;
+	y = x+z ;
+
+	
 	return 0 ;
 }
