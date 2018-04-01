@@ -4,7 +4,7 @@ int main()
 	int y ;
 	int z ;
 
-	y = x+z ;
+	y = x+z;
 
 	
 	return 0 ;

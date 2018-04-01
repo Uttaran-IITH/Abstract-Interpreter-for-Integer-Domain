@@ -16,19 +16,20 @@
 #include "util/cmdline.h"
 #include "goto-cc/compile.h"
 
-template <typename T>
-class interval
-{
-	 public:
-	 	virtual T get_lower_bound();
-	 	virtual T get_upper_bound();
-	 protected:
-		T lower_bound;
-		T upper_bound;		
-};
+// template <typename T>
+// class interval
+// {
+// 	 public:
+// 	 	virtual T get_lower_bound();
+// 	 	virtual T get_upper_bound();
+// 	 protected:
+// 		T lower_bound;
+// 		T upper_bound;		
+// };
 
-class signed_interval : public interval<int>
+class signed_interval // : public interval<int>
 {
+	
 	public:
 		signed_interval();
 		int get_lower_bound();

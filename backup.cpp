@@ -171,8 +171,8 @@ int main()
 						std::cout<<"Returned object : "<<return_obj.get_lower_bound()<<" "<<return_obj.get_upper_bound()<<"\n";
 					}				
 				//f_it->second.body.output_instruction(ns, "", std::cout, instruction)<<"\n";
+				}	
 			}
 		}
-}
 }
 
