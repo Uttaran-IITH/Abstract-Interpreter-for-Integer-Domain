@@ -1,5 +1,6 @@
 SRC = abstract_interpreter_main.cpp \
-	  abstract_interpreter.cpp
+	  abstract_interpreter.cpp \
+	  interval.cpp
 
 OBJ += /home/ubuntu/Desktop/cbmc/src/ansi-c/ansi-c$(LIBEXT) \
       /home/ubuntu/Desktop/cbmc/src/cpp/cpp$(LIBEXT) \

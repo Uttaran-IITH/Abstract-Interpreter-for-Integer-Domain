@@ -1,17 +1,8 @@
 #include <iostream>
-#include <string>
-#include <fstream>
 #include <map>
-#include <climits>
 
-#include "goto-programs/read_goto_binary.h"
 #include "goto-programs/goto_functions.h"
 #include "goto-programs/goto_program_template.h"
-#include "langapi/mode.h"  //Required for register language function
-#include "util/message.h"
-#include "ansi-c/ansi_c_language.h"
-#include "goto-programs/show_goto_functions.h"
-#include "util/cmdline.h"
 
 //Include
 #include "/home/ubuntu/Desktop/SVProject/src/abstract_interpreter.h"
@@ -28,13 +19,13 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 		{
 			goto_programt::instructiont instruction = *it ;
 
+			std::cout<<"Instruction : "<<it->to_string()<<"\n";
+
 			switch(it->type)
 			{
-				case goto_program_instruction_typet::DECL :
-					handle_declaration(instruction, goto_model); break;
+				case goto_program_instruction_typet::DECL :  handle_declaration(*it, goto_model); break;
 
-				case goto_program_instruction_typet::ASSIGN :
-					handle_assignments(instruction, goto_model); break ;
+				case goto_program_instruction_typet::ASSIGN : handle_assignments(*it, goto_model); break ;
 
 				default: std::cout<<"Cannot Recognise the instruction\n";	
 			}
@@ -84,7 +75,7 @@ void abstract_interpreter :: handle_declaration(goto_programt::instructiont &ins
 }
 
 
-void handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model)
+void abstract_interpreter :: handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model)
 {
 	
 }

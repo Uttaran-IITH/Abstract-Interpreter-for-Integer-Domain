@@ -1,16 +1,12 @@
 //User Input Based
 #include <iostream>
 #include <map>
-#include "/home/ubuntu/Desktop/SVProject/src/interval.cpp"
-#include "goto-programs/read_goto_binary.h"
-#include "goto-programs/goto_functions.h"
+
+#include "/home/ubuntu/Desktop/SVProject/src/interval.h"
+
 #include "goto-programs/goto_program_template.h"
-#include "langapi/mode.h"  //Required for register language function
-#include "util/message.h"
-#include "ansi-c/ansi_c_language.h"
-#include "goto-programs/show_goto_functions.h"
-#include "util/cmdline.h"
-#include "goto-cc/compile.h"
+#include "goto-programs/goto_model.h"
+
 
 
 class abstract_interpreter

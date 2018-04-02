@@ -3,10 +3,10 @@
   ***************************************************/
 #include <iostream>
 #include <string>
-#include <fstream>
-#include <map>
-#include <climits>
+
 #include "/home/ubuntu/Desktop/SVProject/src/abstract_interpreter.h"
+
+
 #include "goto-programs/read_goto_binary.h"
 #include "goto-programs/goto_functions.h"
 #include "goto-programs/goto_program_template.h"
@@ -66,11 +66,19 @@
 // 	}
 // }
 
-int main()
+int main(int argc, const char **argv)
 {
 
-		std::string filename = "/home/ubuntu/Desktop/SVProject/example1.o" ;
-		
+		std::string filename ;
+
+
+		if(argc == 1 )
+			std::cout<<"Please provide an input file ";
+		else if(argc ==2)
+			filename = argv[1];
+		else
+			std::cout<<"Donot provide more than one argument";
+
 		stream_message_handlert message_handler(std::cout);
 
 		goto_modelt goto_model ;

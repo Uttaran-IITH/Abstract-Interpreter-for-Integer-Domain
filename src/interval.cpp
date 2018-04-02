@@ -2,16 +2,8 @@
  Description:
  ***********************************************/
 #include <climits>
+#include "interval.h"
 
-class signed_interval
-{
-	int lower_bound;
-	int upper_bound;
-	public:
-		signed_interval();
-		int get_lower_bound();
-		int get_upper_bound();	
-};
 
 signed_interval::signed_interval()
 {
@@ -29,15 +21,7 @@ int signed_interval :: get_upper_bound()
 	 return upper_bound ;
 }
 
-class unsigned_interval
-{
-	int lower_bound;
-	int upper_bound;
-	public:
-		unsigned_interval();
-		unsigned int get_lower_bound();
-		unsigned int get_upper_bound();
-};
+
 
 unsigned_interval :: unsigned_interval()
 {
