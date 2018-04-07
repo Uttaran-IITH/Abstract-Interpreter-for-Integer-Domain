@@ -1,23 +1,25 @@
+CBMC = /home/ubuntu/Desktop/cbmc/src
+
 SRC = abstract_interpreter_main.cpp \
 	  abstract_interpreter.cpp \
 	  interval.cpp
 
-OBJ += /home/ubuntu/Desktop/cbmc/src/ansi-c/ansi-c$(LIBEXT) \
-      /home/ubuntu/Desktop/cbmc/src/cpp/cpp$(LIBEXT) \
-      /home/ubuntu/Desktop/cbmc/src/linking/linking$(LIBEXT) \
-      /home/ubuntu/Desktop/cbmc/src/big-int/big-int$(LIBEXT) \
-      /home/ubuntu/Desktop/cbmc/src/goto-programs/goto-programs$(LIBEXT) \
-      /home/ubuntu/Desktop/cbmc/src/util/util$(LIBEXT) \
-      /home/ubuntu/Desktop/cbmc/src/langapi/langapi$(LIBEXT) \
-      /home/ubuntu/Desktop/cbmc/src/analyses/analyses$(LIBEXT) \
-      /home/ubuntu/Desktop/cbmc/src/goto-instrument/goto_program2code$(OBJEXT)
+OBJ += $(CBMC)/ansi-c/ansi-c$(LIBEXT) \
+      $(CBMC)/cpp/cpp$(LIBEXT) \
+      $(CBMC)/linking/linking$(LIBEXT) \
+      $(CBMC)/big-int/big-int$(LIBEXT) \
+      $(CBMC)/goto-programs/goto-programs$(LIBEXT) \
+      $(CBMC)/util/util$(LIBEXT) \
+      $(CBMC)/langapi/langapi$(LIBEXT) \
+      $(CBMC)/analyses/analyses$(LIBEXT) \
+      $(CBMC)/goto-instrument/goto_program2code$(OBJEXT)
 
-INCLUDES = -I /home/ubuntu/Desktop/cbmc/src/
+INCLUDES = -I $(CBMC)/
 
 LIBS =
 
-include /home/ubuntu/Desktop/cbmc/src/config.inc
-include /home/ubuntu/Desktop/cbmc/src/common
+include $(CBMC)/config.inc
+include $(CBMC)/common
 
 CLEANFILES = abstract_interpreter_main$(EXEEXT)
 
