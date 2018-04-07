@@ -5,7 +5,7 @@
 #include "goto-programs/goto_program_template.h"
 
 //Include
-#include "/home/ubuntu/Desktop/SVProject/src/abstract_interpreter.h"
+#include "abstract_interpreter.h"
 
 
 
@@ -33,43 +33,44 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 	}
 }
 
+
 void abstract_interpreter :: handle_declaration(goto_programt::instructiont &instruction, goto_modelt &goto_model)
 {
 	code_declt decl = to_code_decl(instruction.code);
 	symbol_exprt symbol_expr = to_symbol_expr(decl.symbol());
 	const symbolt* symbol = goto_model.symbol_table.lookup(symbol_expr.get_identifier());
 
-	if(symbol->type.get(ID_C_c_type) == ID_signed_int)
+	if(symbol->type.id() == ID_signedbv)
 	{
-		std::map<irep_idt, signed_interval*>::iterator s_it ;
+		std::map<irep_idt, interval*>::iterator it ;
 
-		s_it = signed_interval_map.find(symbol->name);
+		it = interval_map.find(symbol->name);
 
-		if(s_it != signed_interval_map.end())
+		if(it !=interval_map.end())
 		{
 			std::cout<<"Double Declaration O.O";
 		}
 
 		else
 		{
-			signed_interval_map.insert(std::pair<irep_idt, signed_interval*>(symbol->name, new signed_interval()));
+			interval_map.insert(std::pair<irep_idt, interval*>(symbol->name, new interval(integer_type::SIGNED)));
 		}
 	}
 
-	else if(symbol->type.get(ID_C_c_type) ==  ID_unsigned_int)
+	else if(symbol->type.get(ID_C_c_type) ==  ID_unsignedbv)
 	{
-		std::map<irep_idt, unsigned_interval*>::iterator u_it ;
+		std::map<irep_idt, interval*>::iterator it ;
 
-		u_it = unsigned_interval_map.find(symbol->name);
+		it = interval_map.find(symbol->name);
 
-		if(u_it != unsigned_interval_map.end())
+		if(it != interval_map.end())
 		{
 			std::cout<<"Double Declaration O.O";
 		}
 
 		else
 		{
-			unsigned_interval_map.insert(std::pair<irep_idt, unsigned_interval*>(symbol->name, new unsigned_interval()));
+			interval_map.insert(std::pair<irep_idt, interval*>(symbol->name, new interval(integer_type::UNSIGNED)));
 		}
 	}
 }
