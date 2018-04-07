@@ -1,5 +1,7 @@
 #Pre-requisites
 *.d
+src/abstract_interpreter_main
+abstract_interpreter_main
 #Object Codes
 *.o
 # Executables
