@@ -1,0 +1,8 @@
+#Pre-requisites
+*.d
+#Object Codes
+*.o
+# Executables
+*.exe
+*.out
+*.app
