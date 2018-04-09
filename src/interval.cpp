@@ -2,6 +2,7 @@
  Description:
  ***********************************************/
 #include <climits>
+#include <iostream>
 #include "interval.h"
 
 
@@ -51,6 +52,20 @@ bool interval :: is_minus_inf()
 	return minus_inf;
 }
 
+void interval :: set_lower_bound(int value)
+{
+	lower_bound = value ;
+}
+
+void interval :: set_upper_bound(int value)
+{
+	upper_bound = value ;
+}
+
+void interval :: print_interval()
+{
+	std::cout<<"[ "<<lower_bound<<" , "<<upper_bound<<" ]";  
+}
 // signed_interval::signed_interval()
 // {
 // 	lower_bound = INT_MIN ;

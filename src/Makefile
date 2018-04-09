@@ -1,7 +1,8 @@
-CBMC = /home/ubuntu/Desktop/cbmc/src
+CBMC = /home/ubuntu/Desktop/cbmc_git/src
 
 SRC = abstract_interpreter_main.cpp \
 	  abstract_interpreter.cpp \
+	  interval_utils.cpp \
 	  interval.cpp
 
 OBJ += $(CBMC)/ansi-c/ansi-c$(LIBEXT) \

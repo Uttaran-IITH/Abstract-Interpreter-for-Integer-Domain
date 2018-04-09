@@ -9,7 +9,7 @@
 
 #include "goto-programs/read_goto_binary.h"
 #include "goto-programs/goto_functions.h"
-#include "goto-programs/goto_program_template.h"
+#include "goto-programs/goto_program.h"
 #include "langapi/mode.h"  //Required for register language function
 #include "util/message.h"
 #include "ansi-c/ansi_c_language.h"
