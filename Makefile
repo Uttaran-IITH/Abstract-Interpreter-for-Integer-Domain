@@ -1,4 +1,4 @@
-SRC = abstract_interpreter_main.cpp
+SRC = backup.cpp
 
 OBJ += /home/ubuntu/Desktop/cbmc/src/ansi-c/ansi-c$(LIBEXT) \
       /home/ubuntu/Desktop/cbmc/src/cpp/cpp$(LIBEXT) \

@@ -1,4 +1,5 @@
-CBMC = /home/uttaran/cbmc/src
+
+CBMC = /home/ubuntu/Desktop/cbmc_git/src
 
 SRC = abstract_interpreter_main.cpp \
 	  abstract_interpreter.cpp \
