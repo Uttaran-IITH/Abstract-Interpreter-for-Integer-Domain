@@ -32,6 +32,8 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 
 				case goto_program_instruction_typet::ASSIGN : handle_assignments(*it, goto_model); break ;
 
+				case goto_program_instruction_typet::GOTO : handle_goto(*it, goto_model); break ;
+
 				default: std::cout<<"Cannot Recognise the instruction\n";	
 			}
 		}	
@@ -164,6 +166,59 @@ void abstract_interpreter :: handle_assignments(goto_programt::instructiont &ins
 
 		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		handle_rhs(expression, goto_model);
+	}
+
+}
+
+void abstract_interpreter :: handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model)
+{
+	if(!instruction.is_backwards_goto())
+	{
+		exprt guard = instruction.guard;
+		exprt comp_expr;
+		
+		bool take branch ;
+
+		std::cout<<"Branch Encountered. Press 1 to take if branch and 0 for else branch : ";
+		std::cin>>take_branch;
+
+		if(!take_branch)
+		{
+			create_complementary_expr(expr, comp_expr);
+		}
+
+		if(can_cast_expr<binary_relation_exprt>(expr))
+		{
+			binary_relation_exprt binary_relation_expr = to_binary_relation_expr(expr);
+
+			if(expr.id() == ID_equal)
+			{
+				//take_branch =  
+			}
+			else if(expr.id() == ID_notequal)
+			{
+				//take_branch = 
+			}
+			else if(expr.id() == ge || expr.id() == gt)
+			{
+
+			}
+			else if(expr.id() == le || expr.id() == lt)
+			{
+
+			}
+
+			else
+				std::cout<<"Unidentified Binary Relation Operator\n\n";
+
+
+			if(take_branch)
+			{
+
+			}
+		}
+
+
 	}
 
 }
