@@ -9,6 +9,5 @@ void sub(interval a, interval b, interval *c);
 void multiply(interval a, interval b, interval *c);
 void power(interval *a, int p);
 void less_than(interval *a, interval *b);
-void less_than_equals(interval *a, interval *b);
-void equals(interval *a, interval *b);
+int equals(interval *a, interval *b);
 #endif
