@@ -135,7 +135,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 		}
 		else
 		{
-			std::cout<<"Couldnot Operator\n\n";
+			std::cout<<"Couldnot Recognize Operator\n\n";
 			interval* empty = new interval(integer_type::SIGNED);
 			return *empty ;
 
