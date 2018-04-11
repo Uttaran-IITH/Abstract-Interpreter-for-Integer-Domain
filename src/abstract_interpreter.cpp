@@ -20,6 +20,9 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 
 	Forall_goto_functions(f_it, goto_model.goto_functions)
 	{
+		if(f_it->first == "main")
+		{	
+			std::cout<<"Function : "<<f_it->first<<"\n\n";
 		Forall_goto_program_instructions(it, f_it->second.body)
 		{
 			goto_programt::instructiont instruction = *it ;
@@ -32,8 +35,11 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 
 				case goto_program_instruction_typet::ASSIGN : handle_assignments(*it, goto_model); break ;
 
+				case goto_program_instruction_typet::GOTO : handle_goto(*it, goto_model); break ;
+
 				default: std::cout<<"Cannot Recognise the instruction\n";	
 			}
+		}
 		}	
 	}
 }
@@ -121,9 +127,10 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 			interval arg1 = handle_rhs(plus_expr.op0() , goto_model);
 			interval arg2 = handle_rhs(plus_expr.op1(), goto_model);
 
-			interval add_result = add_intervals(arg1, arg2);
+			interval add_result(integer_type::SIGNED) ;
+			add(arg1, arg2, &add_result);
 			std::cout<<"After Adding : ";
-			add_result.print_interval() ;
+			//add_result.print_interval() ;
 			std::cout<<"\n";
 			return add_result;
 		}
@@ -135,7 +142,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 		}
 		else
 		{
-			std::cout<<"Couldnot Operator\n\n";
+			std::cout<<"Couldnot Recognize Operator\n\n";
 			interval* empty = new interval(integer_type::SIGNED);
 			return *empty ;
 
@@ -164,6 +171,75 @@ void abstract_interpreter :: handle_assignments(goto_programt::instructiont &ins
 
 		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		handle_rhs(expression, goto_model);
+	}
+
+}
+
+void create_complementary_expr(exprt &expr, exprt &comp_expr, goto_modelt &goto_model)
+{
+	not_exprt expr_not = to_not_expr(expr);
+	expr_not.make_not();
+	namespacet ns(goto_model.symbol_table);
+	comp_expr = simplify_expr(expr_not, ns);
+	std::cout<<"Before not simplification : "<<expr2c(expr_not,ns)<<"\n\n";
+	std::cout<<"After not simplification : "<<expr2c(comp_expr,ns)<<"\n\n";
+}
+
+
+void abstract_interpreter :: handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model)
+{
+	if(!instruction.is_backwards_goto())
+	{
+
+		exprt expr(instruction.guard);
+		exprt comp_expr;
+		std::cout<<"EXPRESSION NIL? :"<<expr.has_operands()<<"\n";
+
+	if(expr.has_operands())
+	{		
+		bool take_branch ;
+
+		std::cout<<"Branch Encountered. Press 1 to take if branch and 0 for else branch : ";
+		std::cin>>take_branch;
+		std::cout<<"TAKE BRANCH? : "<<take_branch<<"\n";
+
+		if(!take_branch)
+		{
+			create_complementary_expr(expr, comp_expr, goto_model);
+		}
+
+		if(can_cast_expr<binary_relation_exprt>(expr))
+		{
+			binary_relation_exprt binary_relation_expr = to_binary_relation_expr(expr);
+
+			if(expr.id() == ID_equal)
+			{
+				//take_branch =  
+			}
+			else if(expr.id() == ID_notequal)
+			{
+				//take_branch = 
+			}
+			else if(expr.id() == ID_ge || expr.id() == ID_gt)
+			{
+
+			}
+			else if(expr.id() == ID_le || expr.id() == ID_lt)
+			{
+
+			}
+
+			else
+				std::cout<<"Unidentified Binary Relation Operator\n\n";
+
+
+			if(take_branch)
+			{
+
+			}
+		}
+	}
+
 	}
 
 }

@@ -9,7 +9,7 @@ int main()
 
 	y = x+z*x*z;
 	int a1;
-	a1 = 3 + 4 + 5;
+	a1 = 3 + 4 + 5 + y;
 
 	int a = (x>z)? x : z ;
 
