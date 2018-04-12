@@ -22,5 +22,8 @@ class abstract_interpreter
 		void print_all();
 		void handle_declaration(goto_programt::instructiont &instruction, goto_modelt &goto_model);
 		void handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model);	
+		void handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model, 
+						goto_programt::targett &it, bool &target_changed);	
+
 };
 
