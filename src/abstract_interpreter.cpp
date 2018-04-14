@@ -272,7 +272,54 @@ void create_complementary_expr(exprt &expr, exprt &comp_expr, goto_modelt &goto_
 	std::cout<<"After not simplification : "<<expr2c(comp_expr,ns)<<"\n\n";
 }
 
+void abstract_interpreter :: set_lhs(symbol_exprt &lhs_sym, interval* &lhs, goto_modelt &goto_model)
+{
+	const symbolt* symbol = goto_model.symbol_table.lookup(lhs_sym.get_identifier());
+	std::map<irep_idt, interval*>::iterator it;
 
+	it = interval_map.find(symbol->name);
+
+	if(it!=interval_map.end())
+	{
+		lhs = it->second ;
+		std::cout<<"LHS Set : ";
+		lhs->print_interval();
+		std::cout<<"\n";
+	}
+}
+
+void abstract_interpreter :: set_rhs(exprt &rhs_expr, interval* &rhs , goto_modelt &goto_model)
+{
+
+	if(rhs_expr.id() == ID_constant)
+	{
+		constant_exprt constant_expr = to_constant_expr(rhs_expr);
+		mp_integer value;
+		to_integer(constant_expr, value);
+
+		rhs = new interval(integer_type::SIGNED) ;
+		rhs->set_lower_bound(value, false);
+		rhs->set_upper_bound(value, false);
+	}
+
+	else
+	{
+		symbol_exprt symbol_expr = to_symbol_expr(rhs_expr);
+		const symbolt* symbol = goto_model.symbol_table.lookup(symbol_expr.get_identifier());
+		std::map<irep_idt, interval*>::iterator it;
+
+		it = interval_map.find(symbol->name);
+
+		if(it!=interval_map.end())
+		{
+			rhs = it->second ;
+			std::cout<<"RHS Set : ";
+			rhs->print_interval();
+			std::cout<<"\n";
+		}
+	}	
+
+}
 void abstract_interpreter :: handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model,
 										goto_programt::targett &it, bool &target_changed)
 {
@@ -302,17 +349,47 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		exprt check_expr ;
 
 		if(!take_branch)
+
 			check_expr = expr_false ;
 		else
 			check_expr = expr_true ;
+
+		std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
+
 
 		if(can_cast_expr<binary_relation_exprt>(check_expr))
 		{
 			binary_relation_exprt binary_relation_expr = to_binary_relation_expr(check_expr);
 
+			symbol_exprt lhs_sym = to_symbol_expr(binary_relation_expr.lhs());
+			exprt rhs_expr = binary_relation_expr.rhs();
+
+			interval* rhs ;
+			interval* lhs ;
+
+			//Set LHS
+			set_lhs(lhs_sym, lhs, goto_model);
+			set_rhs(rhs_expr, rhs, goto_model);
+
+
 			if(expr.id() == ID_equal)
 			{
-				  
+				interval* temp ;
+				if(lhs->get_sign() == integer_type::UNSIGNED 
+					|| rhs->get_sign() ==integer_type::UNSIGNED)
+				{
+					temp = new interval(integer_type::UNSIGNED);
+				}
+				else
+					temp = new interval(integer_type::SIGNED);
+
+				can_take_branch = equals(lhs, rhs, temp);
+
+				if(can_take_branch)
+				{
+					lhs->make_equal(*temp);
+					rhs->make_equal(*temp);
+				}
 			}
 			// else if(expr.id() == ID_notequal)
 			// {

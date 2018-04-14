@@ -16,7 +16,9 @@ class abstract_interpreter
 		// std::map<irep_idt, unsigned_interval*> unsigned_interval_map ;
 		std::map<irep_idt, interval*> interval_map;
 		interval handle_rhs(exprt& expression, goto_modelt& goto_model);
-		
+		void set_rhs(exprt &rhs_expr, interval* &rhs , goto_modelt &goto_model);
+		void set_lhs(symbol_exprt &lhs_sym, interval* &lhs, goto_modelt &goto_model);
+
 	public:
 		void run_interpreter(goto_modelt &goto_model);
 		void print_all();

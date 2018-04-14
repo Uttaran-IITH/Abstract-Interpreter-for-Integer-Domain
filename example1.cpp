@@ -15,7 +15,7 @@ int main()
 	a1 = 3 + 4 + 5 + y;
 
 	//int a = (x>z)? x : z ;
-	if(x<4)
+	if(x==y)
 		x = x+1;
 	else
 		y = y+2;

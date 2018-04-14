@@ -72,6 +72,60 @@ void multiply(interval a , interval b , interval* c)
 	c->set_lower_bound(min, minus_inf);
 	c->set_upper_bound(max, plus_inf);
 }
+
+bool meet(interval *a, interval *b, interval* &c) {
+	mp_integer l1 = a->get_lower_bound();
+	mp_integer u1 = a->get_upper_bound();
+	mp_integer l2 = b->get_lower_bound();
+	mp_integer u2 = b->get_upper_bound();
+	if (u1 < l2 || u2 < l1) {
+		std::cout << "Invalid";
+		return false ;
+	}
+	else 
+	{
+
+		if(a->is_minus_inf() && b->is_minus_inf())
+			c->set_lower_bound(0,true);
+		else if(a->is_minus_inf())
+			c->set_lower_bound(l2, false);
+		else if(b->is_minus_inf())
+			c->set_lower_bound(l1,false);
+		else
+			c->set_lower_bound(max(l1, l2), false);
+
+
+		if(a->is_plus_inf() && b->is_plus_inf())
+			c->set_upper_bound(0,true);
+		else if(a->is_plus_inf())
+			c->set_upper_bound(l2, false);
+		else if(b->is_plus_inf())
+			c->set_upper_bound(l1,false);
+		else
+			c->set_upper_bound(min(l1, l2), false);
+
+		return true ;
+	}
+}
+
+bool equals(interval *a, interval *b, interval* &c) {
+	mp_integer l1 = a->get_lower_bound();
+	mp_integer u1 = a->get_upper_bound();
+	mp_integer l2 = b->get_lower_bound();
+	mp_integer u2 = b->get_upper_bound();
+	if (u1 < l2 || u2 < l1) {
+		std::cout<<"Infeasible Branch\n";
+		return false ;
+	}
+	else {
+		
+		if(meet(a, b, c))
+			return true ;
+		else
+			return false;
+	}
+}
+
 // void multiply(interval a, interval b, interval *c) {
 // 	mp_integer temp[] = {
 // 		a.get_lower_bound() * b.get_lower_bound(),
