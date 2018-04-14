@@ -287,11 +287,12 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 	if(expr.has_operands())
 	{		
 		bool take_branch ;
-		comp_expr = simplify_expr(expr, ns);
+		exprt expr_true = simplify_expr(expr, ns);
 
-		create_complementary_expr(expr, comp_expr, goto_model);
+		expr.make_not();
+		exprt expr_false =  expr;
 
-		std::cout<<"Branch Condition : "<<expr2c(comp_expr, ns)<<"\n";
+		std::cout<<"Branch Condition : "<<expr2c(expr_true, ns)<<"\n";
 
 		std::cout<<"Press 1 to take if branch and 0 for else branch : ";
 		std::cin>>take_branch;
@@ -301,9 +302,9 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		exprt check_expr ;
 
 		if(!take_branch)
-			check_expr = expr ;
+			check_expr = expr_false ;
 		else
-			check_expr = comp_expr ;
+			check_expr = expr_true ;
 
 		if(can_cast_expr<binary_relation_exprt>(check_expr))
 		{
@@ -329,20 +330,24 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 			else
 				std::cout<<"Unidentified Binary Relation Operator\n\n";
 
-
-			std::cout<<"$$$$$$$$$$$$$$$$$$$\n\n";
 			can_take_branch = true ;
 
-			std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n";
-			if(!take_branch && can_take_branch)
+			if(take_branch && can_take_branch)
 			{
 				std::cout<<"Setting Target : \n";
 				target_changed = true ;
 				it = instruction.get_target();
 
-				std::cout<<"Set target as : "<<as_string(ns, *it)<<"\n\n";
+				//std::cout<<"Set target as : "<<as_string(ns, *it)<<"\n\n";
 			}
 		}
+	}
+
+	else
+	{
+		std::cout<<"Target Changed\n";
+		target_changed = true ;
+		it = instruction.get_target();
 	}
 
 	}

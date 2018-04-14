@@ -127,6 +127,7 @@ void multiply(interval a , interval b , interval* c)
 // 		a->set_upper_bound(min(u1, u2));
 // 	}
 // }
+
 // void greater_than(interval *a, interval *b) {
 // 	mp_integer l1 = a->get_lower_bound();
 // 	mp_integer u1 = a->get_upper_bound();
