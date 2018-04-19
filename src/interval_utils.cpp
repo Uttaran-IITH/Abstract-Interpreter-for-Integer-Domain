@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-#include "mp_arith.h"
+#include "/home/uttaran/cbmc/src/util/mp_arith.h"
 mp_integer min(mp_integer a, mp_integer b) {
 	if (a < b)
 		return a;
@@ -127,8 +127,8 @@ bool divide(interval a,interval b,interval *c){
  	mp_integer n = min(min(min(temp[0],temp[1]),temp[2]),temp[3]);
 	c->set_upper_bound(m + 1, pos_inf);
 	c->set_lower_bound(n, neg_inf);
-		
 	}
+	return true;
 }
 void power(interval *a, unsigned int p) {
 	mp_integer n = pow(a->get_lower_bound(),p);
@@ -192,6 +192,7 @@ bool not_equals(interval *a, interval *b) {
  	mp_integer u2 = b->get_upper_bound();
  	if ((l1 == u1) && (u1 == l2) && (l2 == u2)){
 		 std::cout<<"Invalid Branch \n";
+		 return false;
 	 }
 	 else
 	 return true;
