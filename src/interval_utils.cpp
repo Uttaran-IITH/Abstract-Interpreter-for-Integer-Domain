@@ -2,8 +2,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
+#include "mp_arith.h"
 mp_integer min(mp_integer a, mp_integer b) {
-	if (a<b)
+	if (a < b)
 		return a;
 	else
 		return b;
@@ -129,13 +130,16 @@ bool divide(interval a,interval b,interval *c){
 		
 	}
 }
- //void power(interval *a, mp_integer p) {
-	// mp_integer n = pow(double(a->get_lower_bound()),(double)p);
-	 //mp_integer m = pow((double)a->get_upper_bound(),(double)p);
-
-//}
- bool less_than(interval *a, interval *b) {
- 	mp_integer l1 = a->get_lower_bound();
+void power(interval *a, unsigned int p) {
+	mp_integer n = pow(a->get_lower_bound(),p);
+	mp_integer m = pow(a->get_upper_bound(),p);
+	if (p%2 == 0 && n < 0)
+		n = -n;
+	a->set_lower_bound(n,a->is_minus_inf());
+	a->set_upper_bound(m,a->is_plus_inf());
+}
+ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b) {
+	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
@@ -147,13 +151,14 @@ bool divide(interval a,interval b,interval *c){
 		 return false;
  	}
  	else {
-		a->set_lower_bound(l1,a->is_minus_inf());
-		a->set_upper_bound(min(u1, u2),a->is_plus_inf() && b->is_plus_inf());
+		temp_a->set_lower_bound(l1,a->is_minus_inf());
+		temp_b->set_upper_bound(min(u1, u2),a->is_plus_inf() && b->is_plus_inf());
  	}
+	if(greater_than(b,a,temp_b,temp_a));
 	 return true;
  }
 
-bool greater_than(interval *a, interval *b) {
+bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b) {
  	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -166,9 +171,10 @@ bool greater_than(interval *a, interval *b) {
  		return true;
  	}
  	else {
- 		a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
- 		a->set_upper_bound(u1,a->is_plus_inf());
+ 		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
+ 		temp_a->set_upper_bound(u1,a->is_plus_inf());
  	}
+	if(less_than(b,a,temp_b,temp_a));
 	 return true;
  }
 void join(interval *a, interval *b) {
