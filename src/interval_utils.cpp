@@ -40,19 +40,6 @@ void sub(interval a, interval b, interval *c) {
 	add(a, b, c);
 }
 
-void multiply(interval a , interval b , interval* c)
-{
-	mp_integer temp1 = a.get_lower_bound() * b.get_lower_bound() ;
-	mp_integer temp2 = a.get_lower_bound() * b.get_upper_bound() ;
-	mp_integer temp3 = a.get_upper_bound() * b.get_lower_bound() ;
-	mp_integer temp4 = a.get_upper_bound() * b.get_upper_bound() ;
-	mp_integer m,n ;
-	m = max(max(max(temp1,temp2),temp3),temp4);
-	n = min(min(min(temp1,temp2),temp3),temp4);
-	c->set_upper_bound(m, a.is_plus_inf() || b.is_plus_inf());
-	c->set_lower_bound(n, a.is_minus_inf() || b.is_minus_inf());
-}
-
 bool meet(interval *a, interval *b, interval* &c) {
 	mp_integer l1 = a->get_lower_bound();
 	mp_integer u1 = a->get_upper_bound();
@@ -95,11 +82,52 @@ void multiply(interval a, interval b, interval *c) {
  		a.get_upper_bound() * b.get_lower_bound(),
  		a.get_upper_bound() * b.get_upper_bound()
  	};
-
+	bool pos_inf = 0, neg_inf = 0;
+	if( (a.is_minus_inf() && (b.get_lower_bound() < 0 || b.get_upper_bound() < 0 || b.is_minus_inf())) || 
+		(b.is_minus_inf() && (a.get_lower_bound() < 0 || a.get_upper_bound() < 0)) || 
+		(a.is_plus_inf() && (b.is_plus_inf() || b.get_lower_bound() > 0 || b.get_upper_bound() > 0 )) ||
+		(b.is_plus_inf() && (a.get_lower_bound() > 0 && a.get_upper_bound() > 0))  ) 
+		pos_inf = 1 ;
+	if( (a.is_minus_inf() && (b.get_lower_bound() > 0 || b.get_upper_bound() > 0 || b.is_plus_inf())) || 
+		(b.is_minus_inf() && (a.get_lower_bound() > 0 || a.get_upper_bound() > 0)) || 
+		(a.is_plus_inf() && (b.is_minus_inf() || b.get_lower_bound() < 0 || b.get_upper_bound() < 0 )) ||
+		(b.is_plus_inf() && (a.get_lower_bound() < 0 && a.get_upper_bound() < 0))  ) 
+		neg_inf = 1 ;
+		
+	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
+ 	mp_integer n = min(min(min(temp[0],temp[1]),temp[2]),temp[3]);
+	c->set_upper_bound(m, pos_inf);
+	c->set_lower_bound(n, neg_inf);
+}
+bool divide(interval a,interval b,interval *c){
+	if(b.get_lower_bound()==0 || b.get_upper_bound()==0){
+		std::cout<<"Cannot divide by 0\n";
+		return false;
+	}
+	else{
+		mp_integer temp[] = {
+ 		a.get_lower_bound() / b.get_lower_bound(),
+ 		a.get_lower_bound() / b.get_upper_bound(),
+ 		a.get_upper_bound() / b.get_lower_bound(),
+ 		a.get_upper_bound() / b.get_upper_bound()
+ 	};
+	bool pos_inf = 0, neg_inf = 0;
+	if( (a.is_minus_inf() && (b.get_lower_bound() < 0 || b.get_upper_bound() < 0 || b.is_minus_inf())) || 
+		(b.is_minus_inf() && (a.get_lower_bound() < 0 || a.get_upper_bound() < 0)) || 
+		(a.is_plus_inf() && (b.is_plus_inf() || b.get_lower_bound() > 0 || b.get_upper_bound() > 0 )) ||
+		(b.is_plus_inf() && (a.get_lower_bound() > 0 && a.get_upper_bound() > 0))  ) 
+		pos_inf = 1 ;
+	if( (a.is_minus_inf() && (b.get_lower_bound() > 0 || b.get_upper_bound() > 0 || b.is_plus_inf())) || 
+		(b.is_minus_inf() && (a.get_lower_bound() > 0 || a.get_upper_bound() > 0)) || 
+		(a.is_plus_inf() && (b.is_minus_inf() || b.get_lower_bound() < 0 || b.get_upper_bound() < 0 )) ||
+		(b.is_plus_inf() && (a.get_lower_bound() < 0 && a.get_upper_bound() < 0))  ) 
+		neg_inf = 1 ;
  	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
  	mp_integer n = min(min(min(temp[0],temp[1]),temp[2]),temp[3]);
-	c->set_upper_bound(m, a.is_plus_inf() && b.is_plus_inf());
-	c->set_lower_bound(n, a.is_minus_inf() && b.is_minus_inf());
+	c->set_upper_bound(m + 1, pos_inf);
+	c->set_lower_bound(n, neg_inf);
+		
+	}
 }
  //void power(interval *a, mp_integer p) {
 	// mp_integer n = pow(double(a->get_lower_bound()),(double)p);
