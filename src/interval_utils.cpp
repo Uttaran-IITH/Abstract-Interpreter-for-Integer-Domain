@@ -138,7 +138,7 @@ void power(interval *a, unsigned int p) {
 	a->set_lower_bound(n,a->is_minus_inf());
 	a->set_upper_bound(m,a->is_plus_inf());
 }
- bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b) {
+ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l = 0) {
 	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -154,11 +154,12 @@ void power(interval *a, unsigned int p) {
 		temp_a->set_lower_bound(l1,a->is_minus_inf());
 		temp_b->set_upper_bound(min(u1, u2),a->is_plus_inf() && b->is_plus_inf());
  	}
-	if(greater_than(b,a,temp_b,temp_a));
+	if(l == 0)
+	if(greater_than(b,a,temp_b,temp_a,1));
 	 return true;
  }
 
-bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b) {
+bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l = 0) {
  	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -174,7 +175,8 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b) 
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
  		temp_a->set_upper_bound(u1,a->is_plus_inf());
  	}
-	if(less_than(b,a,temp_b,temp_a));
+	if(l == 0)
+	if(less_than(b,a,temp_b,temp_a,1));
 	 return true;
  }
 void join(interval *a, interval *b) {
