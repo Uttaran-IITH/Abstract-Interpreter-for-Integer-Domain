@@ -7,6 +7,7 @@
 #include "util/mp_arith.h"
 #include "util/arith_tools.h"
 #include "util/simplify_expr.h"
+#include "analyses/natural_loops.h"
 #include "util/string2int.h"
 //Include
 #include "abstract_interpreter.h"
@@ -19,10 +20,15 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 	std::cout<<"Running Interpreter : \n";
 	namespacet ns(goto_model.symbol_table);
 
+
+	natural_loops_mutablet loops ;
+
 	Forall_goto_functions(f_it, goto_model.goto_functions)
 	{
 		if(f_it->first == "main")
 		{	
+			loops(f_it->second.body);
+
 			std::cout<<"Function : "<<f_it->first<<"\n\n";
 	  	for(goto_programt::instructionst::iterator \
 	      	it=(f_it->second).body.instructions.begin(); \
@@ -39,8 +45,13 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 
 				case goto_program_instruction_typet::ASSIGN : handle_assignments(*it, goto_model); break ;
 
-				case goto_program_instruction_typet::GOTO : handle_goto(*it, goto_model, it,target_changed);  break ;
-
+				case goto_program_instruction_typet::GOTO : if(!check_if_loop(loops, it)) 
+																handle_goto(*it, goto_model, it, target_changed);
+															else
+															{
+																handle_loops();   
+															}
+															break ;	
 				default: std::cout<<"Cannot Recognise the instruction\n";	
 			}
 
@@ -52,6 +63,19 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 		}	
 	}
 }
+
+bool abstract_interpreter :: check_if_loop(natural_loops_mutablet &loops, 
+											goto_programt::targett &target)
+{
+	for(natural_loops_mutablet::loop_mapt::iterator l_it = loops.loop_map.begin() ; l_it != loops.loop_map.end() ; l_it++)
+	{
+		if(l_it->first == target)
+			return true ;
+	}
+
+	return false; 
+}
+
 
 void abstract_interpreter :: print_all()
 {
@@ -427,6 +451,117 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		it = instruction.get_target();
 	}
 
+	}
+}
+
+bool check_loop_condition(goto_programt::instructiont &instruction, goto_modelt &goto_model)
+{
+	exprt expr(instruction.guard);
+
+	if(expr.has_operands())
+	{		
+		bool take_branch ;
+		exprt expr_true = simplify_expr(expr, ns);
+
+		expr.make_not();
+		exprt expr_false =  expr;
+
+	if(can_cast_expr<binary_relation_exprt>(expr_true))
+		{
+			binary_relation_exprt binary_relation_expr = to_binary_relation_expr(check_expr);
+
+			symbol_exprt lhs_sym = to_symbol_expr(binary_relation_expr.lhs());
+			exprt rhs_expr = binary_relation_expr.rhs();
+
+			interval* rhs ;
+			interval* lhs ;
+
+			//Set LHS
+			set_lhs(lhs_sym, lhs, goto_model);
+			set_rhs(rhs_expr, rhs, goto_model);
+
+
+			if(expr.id() == ID_equal)
+			{
+				interval* temp ;
+				if(lhs->get_sign() == integer_type::UNSIGNED 
+					|| rhs->get_sign() ==integer_type::UNSIGNED)
+				{
+					temp = new interval(integer_type::UNSIGNED);
+				}
+				else
+					temp = new interval(integer_type::SIGNED);
+
+				can_take_branch = equals(lhs, rhs, temp);
+
+				if(can_take_branch)
+				{
+					lhs->make_equal(*temp);
+					rhs->make_equal(*temp);
+				}
+			}
+			// else if(expr.id() == ID_notequal)
+			// {
+			// 	//take_branch = 
+			// }
+			else if(expr.id() == ID_ge || expr.id() == ID_gt)
+			{
+
+			}
+			else if(expr.id() == ID_le || expr.id() == ID_lt)
+			{
+
+			}
+
+			else
+				std::cout<<"Unidentified Binary Relation Operator\n\n";
+	}		
+}
+
+void abstract_interpreter :: handle_loops(natural_loopt &current_loop, natural_loops_mutablet &all_loops)
+{
+	std::cout<<"****** Loop Found ******\n";
+	if(threshold != -1)
+	{
+		std::cout<<"Enter threshold (after which to widen) : \n";
+		std:cin>>threshold;	
+	}
+	natural_loopt::iterator l_it = current_loop.begin() ;
+	bool loop_condtion = false ;
+
+	l_it->check_loop_condition(*target, goto_model);
+
+	while(target)
+	{
+		goto_programt::targett target = *l_it ;
+
+		switch(target->type)
+		{
+			case goto_program_instruction_typet::DECL :  handle_declaration(*it, goto_model); break;
+
+			case goto_program_instruction_typet::ASSIGN : handle_assignments(*it, goto_model); break ;
+
+			case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto()) 
+															handle_goto(*target, goto_model, l_it, target_changed);
+														else if(check_if_loop(all_loops, target))
+														{
+															handle_loops(return_current_loop(all_loops, l_it), all_loops);
+															l_it = target->get_target();	
+															target_changed = true ;		   
+														}
+														
+														else if(target->is_backwards_goto())
+														{
+															target_changed = true ;
+															  = current_loop.begin();
+														}break ;	
+			default: std::cout<<"Cannot Recognise the instruction\n";	
+		}
+
+		print_all();
+
+		if(!target_changed)
+			l_it++;
 	}
 
 }
