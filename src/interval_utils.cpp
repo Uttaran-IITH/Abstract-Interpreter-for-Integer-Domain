@@ -2,8 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-#include "util/mp_arith.h"
-
+//#include "mp_arith.h"
 mp_integer min(mp_integer a, mp_integer b) {
 	if (a < b)
 		return a;
@@ -101,37 +100,35 @@ void multiply(interval a, interval b, interval *c) {
 	c->set_upper_bound(m, pos_inf);
 	c->set_lower_bound(n, neg_inf);
 }
-void divide(interval a,interval b,interval *c){
+bool divide(interval a,interval b,interval *c){
 	if(b.get_lower_bound()==0 || b.get_upper_bound()==0){
 		std::cout<<"Cannot divide by 0\n";
-		//return false;
+		return false;
 	}
 	else{
 		mp_integer temp[] = {
  		a.get_lower_bound() / b.get_lower_bound(),
  		a.get_lower_bound() / b.get_upper_bound(),
  		a.get_upper_bound() / b.get_lower_bound(),
- 		a.get_upper_bound() / b.get_upper_bound() };
-
+ 		a.get_upper_bound() / b.get_upper_bound()
+ 	};
 	bool pos_inf = 0, neg_inf = 0;
 	if( (a.is_minus_inf() && (b.get_lower_bound() < 0 || b.get_upper_bound() < 0 || b.is_minus_inf())) || 
 		(b.is_minus_inf() && (a.get_lower_bound() < 0 || a.get_upper_bound() < 0)) || 
 		(a.is_plus_inf() && (b.is_plus_inf() || b.get_lower_bound() > 0 || b.get_upper_bound() > 0 )) ||
 		(b.is_plus_inf() && (a.get_lower_bound() > 0 && a.get_upper_bound() > 0))  ) 
 		pos_inf = 1 ;
-
 	if( (a.is_minus_inf() && (b.get_lower_bound() > 0 || b.get_upper_bound() > 0 || b.is_plus_inf())) || 
 		(b.is_minus_inf() && (a.get_lower_bound() > 0 || a.get_upper_bound() > 0)) || 
 		(a.is_plus_inf() && (b.is_minus_inf() || b.get_lower_bound() < 0 || b.get_upper_bound() < 0 )) ||
 		(b.is_plus_inf() && (a.get_lower_bound() < 0 && a.get_upper_bound() < 0))  ) 
 		neg_inf = 1 ;
-
  	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
  	mp_integer n = min(min(min(temp[0],temp[1]),temp[2]),temp[3]);
 	c->set_upper_bound(m + 1, pos_inf);
 	c->set_lower_bound(n, neg_inf);
-		
 	}
+	return true;
 }
 void power(interval *a, unsigned int p) {
 	mp_integer n = pow(a->get_lower_bound(),p);
@@ -141,7 +138,7 @@ void power(interval *a, unsigned int p) {
 	a->set_lower_bound(n,a->is_minus_inf());
 	a->set_upper_bound(m,a->is_plus_inf());
 }
- bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b) {
+ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
 	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -157,15 +154,17 @@ void power(interval *a, unsigned int p) {
 		temp_a->set_lower_bound(l1,a->is_minus_inf());
 		temp_b->set_upper_bound(min(u1, u2),a->is_plus_inf() && b->is_plus_inf());
  	}
+	if(l == 0)
+	{	
+		if(greater_than(b,a,temp_b,temp_a,1)){}
 
-	if(greater_than(b,a,temp_b,temp_a))
+	}
+
 	 return true;
- 
- 	else
- 		return true ;
+
  }
 
-bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b) {
+bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
  	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -181,11 +180,12 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b) 
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
  		temp_a->set_upper_bound(u1,a->is_plus_inf());
  	}
-	if(less_than(b,a,temp_b,temp_a))
-	 return true;
+ 	
+	if(l == 0)
+		if(less_than(b,a,temp_b,temp_a,1)){}
+	 
 
-	 else
-	 	return true ;
+	 return true;
  }
 void join(interval *a, interval *b) {
  	mp_integer l1 = a->get_lower_bound();
@@ -202,10 +202,28 @@ bool not_equals(interval *a, interval *b) {
  	mp_integer u2 = b->get_upper_bound();
  	if ((l1 == u1) && (u1 == l2) && (l2 == u2)){
 		 std::cout<<"Invalid Branch \n";
-		 return false ;
+		 return false;
 	 }
-
 	 else
 	 return true;
 
+}
+bool widen(interval *a,interval *b,interval *temp){
+	mp_integer l1 = a->get_lower_bound();
+ 	mp_integer u1 = a->get_upper_bound();
+ 	mp_integer l2 = b->get_lower_bound();
+ 	mp_integer u2 = b->get_upper_bound();
+	if(l1 > l2){
+		if(!temp->is_minus_inf())
+			temp->set_lower_bound(b->get_lower_bound(),true);
+		else
+			return false;
+	}
+	if (u1 < u2){
+		if(!temp->is_plus_inf())
+			temp->set_upper_bound(b->get_upper_bound(),true);
+		else
+			return false;
+	}
+	return true;
 }

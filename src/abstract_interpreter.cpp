@@ -552,9 +552,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 		std::cout<<"Enter the loop ? (1 = yes , 0 = no) :  ";
 		std::cin>>enter_loop ;		
 	}
-	//l_it->check_loop_condition(*target, goto_model);
-
-
+	
 	while(check_condition(simplified, goto_model, ns) && enter_loop)
 	{
 		bool target_changed = false ;
@@ -589,7 +587,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 																 l_it = current_loop.end();
 															}break ;	
 
-				default: std::cout<<"Cannot Recognise the instruction\n";	
+				default: std::cout<<"Cannot Recognise the instruction\n"; target_changed = false ;
 			}
 
 		print_all();
@@ -605,9 +603,4 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 		l_it = current_loop.begin(); 
 		std::cout<<"One Iteration Done\n";
 	}	
-
-	// if(!check_condition(simplified, goto_model, ns))
-	// {
-
-	// }
 }
