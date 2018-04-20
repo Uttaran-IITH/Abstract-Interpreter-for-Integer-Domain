@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-#include "/home/uttaran/cbmc/src/util/mp_arith.h"
+//#include "mp_arith.h"
 mp_integer min(mp_integer a, mp_integer b) {
 	if (a < b)
 		return a;
@@ -138,7 +138,7 @@ void power(interval *a, unsigned int p) {
 	a->set_lower_bound(n,a->is_minus_inf());
 	a->set_upper_bound(m,a->is_plus_inf());
 }
- bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l = 0) {
+ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
 	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -159,7 +159,7 @@ void power(interval *a, unsigned int p) {
 	 return true;
  }
 
-bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l = 0) {
+bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
  	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -199,4 +199,23 @@ bool not_equals(interval *a, interval *b) {
 	 else
 	 return true;
 
+}
+bool widen(interval *a,interval *b,interval *temp){
+	mp_integer l1 = a->get_lower_bound();
+ 	mp_integer u1 = a->get_upper_bound();
+ 	mp_integer l2 = b->get_lower_bound();
+ 	mp_integer u2 = b->get_upper_bound();
+	if(l1 > l2){
+		if(!temp->is_minus_inf())
+			temp->set_lower_bound(b->get_lower_bound(),true);
+		else
+			return false;
+	}
+	if (u1 < u2){
+		if(!temp->is_plus_inf())
+			temp->set_upper_bound(b->get_upper_bound(),true);
+		else
+			return false;
+	}
+	return true;
 }
