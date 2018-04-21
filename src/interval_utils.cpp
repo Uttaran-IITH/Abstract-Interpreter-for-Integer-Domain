@@ -143,10 +143,13 @@ void power(interval *a, unsigned int p) {
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
- 	if (u1 < l2) {
+
+	std::cout<<"\n\n PRINTING RESULT : ";
+	std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
+ 	if ( (!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
  		return true;
  	}
- 	else if (u2 < l1) {
+ 	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
  		std::cout << "Invalid Branch \n";
 		 return false;
  	}
@@ -160,6 +163,8 @@ void power(interval *a, unsigned int p) {
 
 	}
 
+	temp_a->print_interval();
+	temp_b->print_interval();
 	 return true;
 
  }
@@ -169,6 +174,9 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
+
+	std::cout<<"\n\n PRINTING RESULT : ";
+	std::cout<<l1<<" "<<l2<<" "<<u1<<" "<<u2<<" "<<"\n";
  	if (u1 < l2) {
  		std::cout << "Invalid Branch \n";
 		 return false;
@@ -183,7 +191,10 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
  	
 	if(l == 0)
 		if(less_than(b,a,temp_b,temp_a,1)){}
-	 
+
+
+	temp_a->print_interval();
+	temp_b->print_interval();	 
 
 	 return true;
  }

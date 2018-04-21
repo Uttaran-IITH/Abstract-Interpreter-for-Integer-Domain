@@ -183,7 +183,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 			integer_type type = integer_type::SIGNED ; 
 			if(arg1.get_sign()  == integer_type::UNSIGNED &&
-				arg2.get_sign() == integer_type::SIGNED)
+				arg2.get_sign() == integer_type::UNSIGNED)
 			{
 				type = integer_type::UNSIGNED ;
 			}
@@ -209,7 +209,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 			integer_type type = integer_type::SIGNED ;
 			if(arg1.get_sign()  == integer_type::UNSIGNED &&
-				arg2.get_sign() == integer_type::SIGNED)
+				arg2.get_sign() == integer_type::UNSIGNED)
 			{
 				type = integer_type::UNSIGNED ;
 			}
@@ -236,7 +236,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 			integer_type type = integer_type::SIGNED ;
 			if(arg1.get_sign()  == integer_type::UNSIGNED &&
-				arg2.get_sign() == integer_type::SIGNED)
+				arg2.get_sign() == integer_type::UNSIGNED)
 			{
 				type = integer_type::UNSIGNED ;
 			}
@@ -252,6 +252,32 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 			return mult_result ;
 		}
 
+		else if(expression.id() == ID_div)
+		{
+			std::cout<<"Divide Expression : ";
+			div_exprt div_expr = to_div_expr(expression);
+
+			interval arg1 = handle_rhs(div_expr.op0(), goto_model);
+			interval arg2 = handle_rhs(div_expr.op1(), goto_model);
+
+			integer_type type = integer_type::SIGNED ;
+
+			if(arg1.get_sign()  == integer_type::UNSIGNED &&
+				arg2.get_sign() == integer_type::UNSIGNED)
+			{
+				type = integer_type::UNSIGNED ;
+			}
+
+			interval div_result(type);
+
+			divide(arg1, arg2, &div_result);
+
+			std::cout<<"After Divide : ";
+			div_result.print_interval() ;
+			std::cout<<"\n";
+
+			return div_result ;
+		}	
 
 		else
 		{
@@ -263,7 +289,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 	}
 }
 
-void abstract_interpreter :: handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model)
+void abstract_interpreter :: handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model, bool widen)
 {
 	code_assignt assign = to_code_assign(instruction.code);	
 	symbol_exprt symbol_expr = to_symbol_expr(assign.lhs());	
@@ -284,7 +310,18 @@ void abstract_interpreter :: handle_assignments(goto_programt::instructiont &ins
 
 		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		interval temp = handle_rhs(expression, goto_model);
-		it->second->make_equal(temp);
+
+		if(!widen)
+		{
+			it->second->make_equal(temp);			
+		}
+
+		else
+		{
+			bool widened = widen(it->second, temp);
+			std::cout<<"Widened : ";
+
+		}
 	}
 
 }
@@ -431,7 +468,21 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 			}
 			else if(expr.id() == ID_le || expr.id() == ID_lt)
 			{
+				interval* temp_a;
+				interval* temp_b;
+				temp_a = new interval(integer_type::SIGNED);
+				temp_b = new interval(integer_type :: UNSIGNED);
 
+				can_take_branch = less_than(lhs,rhs,temp_a,temp_b);
+
+				if(can_take_branch)
+				{
+					lhs->make_equal(*temp_a);
+					std::cout<<"LHS : ";
+					lhs->print_interval();
+					std::cout<<"\n\n";
+					rhs->make_equal(*temp_b);
+				}
 			}
 
 			else
@@ -506,23 +557,32 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 
 			else if(expr.id() == ID_ge || expr.id() == ID_gt)
 			{
+				std::cout<<"Comes into greater_than \n ";
 				interval* temp_a;
 				interval* temp_b;
 				temp_a = new interval(integer_type::SIGNED);
 				temp_b = new interval(integer_type :: UNSIGNED);
-				std::cout<<"Before Less than : "<<can_enter_loop<<"\n\n";
-				can_enter_loop = less_than(lhs,rhs,temp_a,temp_b);
-				std::cout<<"After : "<<can_enter_loop<<"\n\n";
+				//std::cout<<"Before Less than : "<<can_enter_loop<<"\n\n";
+				can_enter_loop = greater_than(lhs,rhs,temp_a,temp_b);
+				lhs->make_equal(*temp_a);
+				rhs->make_equal(*temp_b);
+				//std::cout<<"\n*******************___________________ ************\n";
+				//temp_b->print_interval();
+				//std::cout<<"\n\n";
+				//std::cout<<"After : "<<can_enter_loop<<"\n\n";
 			}
 
 			else if(expr.id() == ID_le || expr.id() == ID_lt)
 			{
+				std::cout<<"Comes into less than\n";
 				interval* temp_a;
 				interval* temp_b;
 				temp_a = new interval(integer_type::SIGNED);
 				temp_b = new interval(integer_type :: UNSIGNED);
 
-				can_enter_loop = greater_than(lhs,rhs,temp_a,temp_b);
+				can_enter_loop = less_than(lhs,rhs,temp_a,temp_b);
+				// lhs->make_equal(*temp_a);
+				// rhs->make_equal(*temp_b);
 			}
 
 			else
@@ -543,21 +603,43 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 
 	natural_loops_mutablet::natural_loopt::iterator l_it = current_loop.begin() ;
 	bool enter_loop = false ;
+	bool converged = false ;
+
+	if(threshold = -1)
+	{
+		std::cout<<"Enter threshold : ";
+		std::cin>>threshold ;
+	}
 
 	goto_programt::instructiont &instruction = **l_it;
-	exprt simplified = simplify_expr(instruction.guard, ns);
+	//exprt simplified = simplify_expr(instruction.guard, ns);
+	//exprt expr = instruction.guard ;
+	exprt simplified = instruction.guard;
+	simplified.make_not();
 
 	if(check_condition(simplified, goto_model, ns))
 	{
 		std::cout<<"Enter the loop ? (1 = yes , 0 = no) :  ";
 		std::cin>>enter_loop ;		
 	}
-	
-	while(check_condition(simplified, goto_model, ns) && enter_loop)
+		
+	std::map<irep_idt, interval*> interval_map_before_loop;
+	copy_map(interval_map_before_loop);
+
+	std::cout<<"Before Entering the Loop\n\n";
+
+	print_all();
+
+	int iter_number = 0 ;
+
+	while(check_condition(simplified, goto_model, ns) && enter_loop && !converged && iter_number<threshold)
 	{
 		bool target_changed = false ;
 		std::cout<<"Entered LOOOOP\n";
 		++l_it ;
+
+		std::map<irep_idt, interval*> interval_map_prev_iteration;
+		copy_map(interval_map_prev_iteration);
 
 		while(l_it != current_loop.end())
 		{
@@ -570,7 +652,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 			{
 				case goto_program_instruction_typet::DECL :  handle_declaration(*target, goto_model); break;
 
-				case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ;handle_assignments(*target, goto_model); break ;
+				case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ;handle_assignments(*target, goto_model, false); break ;
 
 				case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto()) 
 																handle_goto(*target, goto_model, target, target_changed);
@@ -590,17 +672,195 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 				default: std::cout<<"Cannot Recognise the instruction\n"; target_changed = false ;
 			}
 
-		print_all();
+			print_all();
 
-		if(!target_changed)
-			{
-				l_it++;
-				//std::cout<<"Instruction : "<<as_string(ns, **l_it)<<"\n";
+			if(!target_changed)
+				{
+					l_it++;			//std::cout<<"Instruction : "<<as_string(ns, **l_it)<<"\n";
+				}
 
-			}
+			//std::cin.get();
 		}
 
 		l_it = current_loop.begin(); 
 		std::cout<<"One Iteration Done\n";
+
+		join_values(interval_map_before_loop);
+		std::cout<<"\n\n After Join : ";
+		print_all();
+		check_for_convergence(interval_map_before_loop, converged);
+		iter_number++ ;
 	}	
+
+	if(iter_number>=threshold && !converged && check_condition(simplified, goto_model, ns))
+	{
+		widening(loops, all_loops,goto_model, ns); 
+		//For inner loops, if encountered, simply ignore as they would have already been widened.
+	}
+}
+
+void abstract_interpreter :: join_values(std::map<irep_idt, interval*> &interval_map_before_loop)
+{
+	std::map<irep_idt, interval*>::iterator it = interval_map.begin();
+	std::map<irep_idt, interval*>::iterator it_init ;
+
+	while(it!=interval_map.end())
+	{
+		it_init = interval_map_before_loop.find(it->first);
+
+		if(it_init!=interval_map_before_loop.end())
+		{
+			std::cout<<"Before Join : ";
+			it->second->print_interval();
+			it_init->second->print_interval();
+			join(it->second, it_init->second);
+
+			std::cout<<"After join : ";
+			it->second->print_interval();
+
+		}
+		else
+		{
+			std::cout<<"Didnot Find Symbol\n";
+		}
+
+		it++ ;
+	}
+}
+
+void abstract_interpreter :: check_for_convergence(std::map<irep_idt, interval*> &interval_map_prev_iteration, bool &converged)
+{
+	std::map<irep_idt, interval*>::iterator it = interval_map.begin();
+	std::map<irep_idt, interval*>::iterator it_init ;	
+
+	bool conv = true ; ;
+	bool lower_same, upper_same ;
+	while(it!=interval_map.end())
+	{
+		it_init = interval_map_prev_iteration.find(it->first);
+
+		if(it_init!=interval_map_prev_iteration.end())
+		{
+			//Checking equivalence of 2 intervals
+			interval* first ;
+			interval* second ;
+
+			first = it->second; 
+			second = it_init->second ;
+
+			if(first->is_minus_inf() && second->is_minus_inf())
+				lower_same = true ;
+
+			else if(first->get_lower_bound() == second->get_lower_bound() && !(first->is_minus_inf() || second->is_minus_inf()))
+				lower_same = true ;
+			else
+				lower_same = false ;
+
+
+			if(first->is_plus_inf() && second->is_plus_inf())
+				upper_same = true ;
+
+			else if(first->get_upper_bound() == second->get_upper_bound() && !(first->is_plus_inf() || second->is_plus_inf()))
+				upper_same = true ;
+			else
+				upper_same = false ;
+
+			if(!(lower_same && upper_same))
+			{
+				conv = false ;
+				converged =false ;
+				break ;
+			}
+		}
+		else
+		{
+			std::cout<<"Didnot Find Symbol\n";
+		}
+
+		it++ ;
+	}
+
+	if(conv)
+		converged = true ;
+}
+
+void abstract_interpreter ::copy_map(std::map<irep_idt, interval*> &copy)
+{
+	std::map<irep_idt, interval*>::iterator it = interval_map.begin();
+	interval* copied_interval;
+
+	while(it!=interval_map.end())
+	{
+		if(it->second->get_sign() == integer_type::SIGNED)
+		{
+			copied_interval = new interval(integer_type::SIGNED);
+		}
+		else
+		{
+			copied_interval = new interval(integer_type::UNSIGNED);
+		}
+
+		if(it->second->is_minus_inf())
+			copied_interval->set_lower_bound(-1, true);
+		else
+			copied_interval->set_lower_bound(it->second->get_upper_bound(), false);
+
+		if(it->second->is_plus_inf())
+			copied_interval->set_upper_bound(-1, true);
+		else
+			copied_interval->set_upper_bound(it->second->get_upper_bound(), false);
+
+		copy.insert(std::pair<irep_idt, interval*>(it->first, copied_interval));
+
+		it++ ;
+	}	
+}
+
+void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &current_loop, natural_loops_mutablet &all_loops,
+										  goto_modelt &goto_model, namespacet &ns)
+{
+	std::map<irep_idt, interval*> interval_map_before;
+	copy_map(interval_map_before);
+
+	while(l_it != current_loop.end())
+	{
+
+		std::cout<<"\nComes in here\n" ;
+		goto_programt::targett target = *(l_it) ;
+		std::cout<<"Instruction : "<<as_string(ns, *target)<<"\n";
+
+		switch(target->type)
+		{
+			case goto_program_instruction_typet::DECL :  handle_declaration(*target, goto_model); break;
+
+			case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ;handle_assignments(*target, goto_model, true); break ;
+
+			case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto()) 
+															handle_goto(*target, goto_model, target, target_changed);
+
+														else if(check_if_loop(all_loops, target))
+														{
+															//handle_loops(all_loops.loop_map.find(*l_it)->second, all_loops, goto_model, ns);
+															l_it = current_loop.find(target->get_target());	
+															target_changed = true ;		   
+														}
+														
+														else if(target->is_backwards_goto())
+														{
+															target_changed = true ;
+															 l_it = current_loop.end();
+														}break ;	
+
+			default: std::cout<<"Cannot Recognise the instruction\n"; target_changed = false ;
+		}
+
+		print_all();
+
+		if(!target_changed)
+			{
+				l_it++;			//std::cout<<"Instruction : "<<as_string(ns, **l_it)<<"\n";
+			}
+	}	
+
+
 }
