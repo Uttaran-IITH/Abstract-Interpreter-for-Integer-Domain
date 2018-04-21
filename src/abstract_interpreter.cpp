@@ -20,6 +20,7 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 	std::cout<<"Running Interpreter : \n";
 	namespacet ns(goto_model.symbol_table);
 
+	threshold = -1 ;
 
 	natural_loops_mutablet loops ;
 
@@ -289,7 +290,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 	}
 }
 
-void abstract_interpreter :: handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model, bool widen)
+void abstract_interpreter :: handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model)
 {
 	code_assignt assign = to_code_assign(instruction.code);	
 	symbol_exprt symbol_expr = to_symbol_expr(assign.lhs());	
@@ -311,17 +312,17 @@ void abstract_interpreter :: handle_assignments(goto_programt::instructiont &ins
 		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		interval temp = handle_rhs(expression, goto_model);
 
-		if(!widen)
-		{
+		// if(!widen)
+		// {
 			it->second->make_equal(temp);			
-		}
+		// }
 
-		else
-		{
-			bool widened = widen(it->second, temp);
-			std::cout<<"Widened : ";
+		// else
+		// {
+		// 	bool widened = widen(it->second, temp);
+		// 	std::cout<<"Widened : ";
 
-		}
+		// }
 	}
 
 }
@@ -605,12 +606,12 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 	bool enter_loop = false ;
 	bool converged = false ;
 
-	if(threshold = -1)
+	if(threshold ==  -1)
 	{
 		std::cout<<"Enter threshold : ";
 		std::cin>>threshold ;
 	}
-
+    //std::cin.get();	
 	goto_programt::instructiont &instruction = **l_it;
 	//exprt simplified = simplify_expr(instruction.guard, ns);
 	//exprt expr = instruction.guard ;
@@ -652,7 +653,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 			{
 				case goto_program_instruction_typet::DECL :  handle_declaration(*target, goto_model); break;
 
-				case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ;handle_assignments(*target, goto_model, false); break ;
+				case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ;handle_assignments(*target, goto_model); break ;
 
 				case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto()) 
 																handle_goto(*target, goto_model, target, target_changed);
@@ -694,7 +695,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 
 	if(iter_number>=threshold && !converged && check_condition(simplified, goto_model, ns))
 	{
-		widening(loops, all_loops,goto_model, ns); 
+		widening(current_loop, all_loops,goto_model, ns); 
 		//For inner loops, if encountered, simply ignore as they would have already been widened.
 	}
 }
@@ -822,6 +823,11 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 	std::map<irep_idt, interval*> interval_map_before;
 	copy_map(interval_map_before);
 
+	natural_loops_mutablet::natural_loopt::iterator l_it = current_loop.begin() ;
+	l_it++ ;
+
+	bool target_changed = false ;
+
 	while(l_it != current_loop.end())
 	{
 
@@ -833,7 +839,7 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 		{
 			case goto_program_instruction_typet::DECL :  handle_declaration(*target, goto_model); break;
 
-			case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ;handle_assignments(*target, goto_model, true); break ;
+			case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ; handle_assignments_widen(*target, goto_model, interval_map_before); break ;
 
 			case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto()) 
 															handle_goto(*target, goto_model, target, target_changed);
@@ -862,5 +868,49 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 			}
 	}	
 
+
+}
+
+void abstract_interpreter :: handle_assignments_widen(goto_programt::instructiont &instruction, goto_modelt &goto_model, std::map<irep_idt, interval*> &interval_map_prev)
+{
+	code_assignt assign = to_code_assign(instruction.code);	
+	symbol_exprt symbol_expr = to_symbol_expr(assign.lhs());	
+	const symbolt* symbol = goto_model.symbol_table.lookup(symbol_expr.get_identifier());
+
+	std::map<irep_idt, interval*>::iterator it ;
+	it = interval_map.find(symbol->name);
+
+	if(it!=interval_map.end())
+	{
+		exprt expression = assign.rhs();
+		namespacet ns(goto_model.symbol_table);
+
+		std::cout<<"RHS Expression  : "<<expr2c(expression, ns)<<"\n"; 
+		exprt simplified = simplify_expr(expression, ns);
+
+		//CHECK FOR CONSTANT PROPAGATION?? //MAYBE NOT //CONFIRM ONCE
+
+		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
+		interval temp = handle_rhs(expression, goto_model);
+	
+		std::map<irep_idt, interval*>::iterator it_p = interval_map_prev.find(it->first);
+
+		bool widened = widen(it->second, it_p->second , &temp);
+
+			std::cout<<"Sent for Widenening : ";
+			it->second->print_interval();
+			it_p->second->print_interval();
+			temp.print_interval();
+			std::cout<<"\n\n";
+			
+		if(widened)
+			it->second->make_equal(temp);
+
+		std::cout<<"Widened : ";
+		it->second->print_interval();
+		std::cout<<"\n&&&&&&&&&&&&&&\n";
+
+
+	}
 
 }

@@ -25,12 +25,14 @@ class abstract_interpreter
 		void join_values(std::map<irep_idt, interval*> &interval_map_before_loop);
 		void check_for_convergence(std::map<irep_idt, interval*> &interval_map_prev_iteration, bool &converged);
 		void copy_map(std::map<irep_idt, interval*> &copy);
-
+		void widening (natural_loops_mutablet::natural_loopt &current_loop, natural_loops_mutablet &all_loops,
+										  goto_modelt &goto_model, namespacet &ns);
 	public:
 		void run_interpreter(goto_modelt &goto_model);
 		void print_all();
 		void handle_declaration(goto_programt::instructiont &instruction, goto_modelt &goto_model);
-		void handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model, bool widen);	
+		void handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model);	
+		void handle_assignments_widen(goto_programt::instructiont &instruction, goto_modelt &goto_model, std::map<irep_idt, interval*> &interval_map_prev);	
 		void handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model, 
 						goto_programt::targett &it, bool &target_changed);	
 		void handle_loops(natural_loops_mutablet::natural_loopt &current_loop ,  natural_loops_mutablet &all_loops, goto_modelt &goto_model, namespacet &ns);
