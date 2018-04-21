@@ -421,10 +421,10 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 					rhs->make_equal(*temp);
 				}
 			}
-			// else if(expr.id() == ID_notequal)
-			// {
-			// 	//take_branch = 
-			// }
+			else if(expr.id() == ID_notequal)
+			{
+				//take_branch = 
+			}
 			else if(expr.id() == ID_ge || expr.id() == ID_gt)
 			{
 
