@@ -2,7 +2,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
-//#include "mp_arith.h"
 mp_integer min(mp_integer a, mp_integer b) {
 	if (a < b)
 		return a;
@@ -144,11 +143,11 @@ void power(interval *a, unsigned int p) {
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
  	if (u1 < l2) {
- 		return true;
+ 		return ALWAYS_TRUE;
  	}
  	else if (u2 < l1) {
  		std::cout << "Invalid Branch \n";
-		 return false;
+		 return NEVER_TRUE;
  	}
  	else {
 		temp_a->set_lower_bound(l1,a->is_minus_inf());
@@ -160,21 +159,21 @@ void power(interval *a, unsigned int p) {
 
 	}
 
-	 return true;
+	 return MAYBE;
 
  }
 
-bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
+guard_resultt greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
  	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
  	if (u1 < l2) {
  		std::cout << "Invalid Branch \n";
-		 return false;
+		 return NEVER_TRUE;
  	}
  	else if (u2 < l1) {
- 		return true;
+ 		return ALWAYS_TRUE;
  	}
  	else {
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
@@ -185,7 +184,7 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
 		if(less_than(b,a,temp_b,temp_a,1)){}
 	 
 
-	 return true;
+	 return MAYBE;
  }
 void join(interval *a, interval *b) {
  	mp_integer l1 = a->get_lower_bound();
@@ -214,13 +213,13 @@ bool widen(interval *a,interval *b,interval *temp){
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
 	if(l1 > l2){
-		if(!temp->is_minus_inf())
+		if(!a->is_minus_inf())
 			temp->set_lower_bound(b->get_lower_bound(),true);
 		else
 			return false;
 	}
 	if (u1 < u2){
-		if(!temp->is_plus_inf())
+		if(!a->is_plus_inf())
 			temp->set_upper_bound(b->get_upper_bound(),true);
 		else
 			return false;
