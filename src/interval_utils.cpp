@@ -49,10 +49,13 @@ bool meet(interval *a, interval *b, interval* &c) {
 		std::cout << "Invalid";
 		return false ;
 	}
+	if((u1 == u2) && (a->is_plus_inf() == b->plus_inf()) && (l1 == l2) && (a->is_plus_inf() && b->is_plus_inf()))
+		return true
 	else 
 	{
 		c->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
 		c->set_upper_bound(min(u1,u2),a->is_plus_inf() && b->is_plus_inf());
+		maybe = true;
 		return true ;
 	}
 }
@@ -159,6 +162,7 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 
 	temp_a->print_interval();
 	temp_b->print_interval();
+	maybe = true;
 	 return true;
 
  }
@@ -189,7 +193,7 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
 
 	temp_a->print_interval();
 	temp_b->print_interval();	 
-
+	 maybe = true;
 	 return true;
  }
 void join(interval *a, interval *b) {
