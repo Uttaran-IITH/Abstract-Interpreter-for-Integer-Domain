@@ -45,7 +45,7 @@ bool meet(interval *a, interval *b, interval* &c) {
 	mp_integer u1 = a->get_upper_bound();
 	mp_integer l2 = b->get_lower_bound();
 	mp_integer u2 = b->get_upper_bound();
-	if (u1 < l2 || u2 < l1) {
+	if ((u1 < l2 && !b->is_minus_inf()) || (u2 < l1 && !a->is_minus_inf())) {
 		std::cout << "Invalid";
 		return false ;
 	}
@@ -62,7 +62,7 @@ guard_resultt equals(interval *a, interval *b, interval* &c) {
 	mp_integer u1 = a->get_upper_bound();
 	mp_integer l2 = b->get_lower_bound();
 	mp_integer u2 = b->get_upper_bound();
-	if (u1 < l2 || u2 < l1) {
+	if ((u1 < l2 && !b->is_minus_inf())|| (u2 < l1 && !a->is_minus_infinity()) {
 		std::cout<<"Infeasible Branch\n";
 		return NEVER_TRUE ;
 	}
