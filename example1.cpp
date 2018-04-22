@@ -23,6 +23,11 @@ int main()
 	for(int i=0 ; i<5 ; i++)
 	{
 		x = x + 1 ;
+
+		for(int j=0 ; j<10 ; j++)
+		{
+			y = y - 1;
+		}
 	}
 	return 0 ;
 }

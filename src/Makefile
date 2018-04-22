@@ -1,5 +1,5 @@
 
-CBMC = /home/ubuntu/Desktop/cbmc_git/src
+CBMC = /home/eti/Desktop/cbmc-develop/src
 
 SRC = abstract_interpreter_main.cpp \
 	  abstract_interpreter.cpp \

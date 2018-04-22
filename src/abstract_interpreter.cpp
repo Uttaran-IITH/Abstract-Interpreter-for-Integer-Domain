@@ -892,19 +892,22 @@ void abstract_interpreter :: handle_assignments_widen(goto_programt::instruction
 
 		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		interval temp = handle_rhs(expression, goto_model);
-	
+		
+		interval temp_widened(integer_type::SIGNED);
+
 		std::map<irep_idt, interval*>::iterator it_p = interval_map_prev.find(it->first);
 
-		bool widened = widen(it->second, it_p->second , &temp);
+		bool widened = widen(it->second, &temp , &temp_widened);
 
 			std::cout<<"Sent for Widenening : ";
 			it->second->print_interval();
-			it_p->second->print_interval();
+			//it_p->second->print_interval();
 			temp.print_interval();
+			temp_widened.print_interval();
 			std::cout<<"\n\n";
 			
 		if(widened)
-			it->second->make_equal(temp);
+			it->second->make_equal(temp_widened);
 
 		std::cout<<"Widened : ";
 		it->second->print_interval();
