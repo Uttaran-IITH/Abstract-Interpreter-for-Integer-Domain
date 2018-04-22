@@ -2,7 +2,7 @@
 #define INTERVAL_UTILS_H
 
 #include "interval.h"
-
+bool maybe = false;
 //enum guard_resultt {ALWAYS_TRUE, NEVER_TRUE, MAYBE};
 
 void add(interval a, interval b, interval *c);
