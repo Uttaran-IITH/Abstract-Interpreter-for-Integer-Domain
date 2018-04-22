@@ -57,22 +57,17 @@ bool meet(interval *a, interval *b, interval* &c) {
 	}
 }
 
-guard_resultt equals(interval *a, interval *b, interval* &c) {
+bool equals(interval *a, interval *b, interval* &c) {
 	mp_integer l1 = a->get_lower_bound();
 	mp_integer u1 = a->get_upper_bound();
 	mp_integer l2 = b->get_lower_bound();
 	mp_integer u2 = b->get_upper_bound();
 	if ((u1 < l2 && !b->is_minus_inf())|| (u2 < l1 && !a->is_minus_infinity()) {
 		std::cout<<"Infeasible Branch\n";
-		return NEVER_TRUE ;
+		return false ;
 	}
-	else {
-		
-		if(meet(a, b, c))
-			return ALWAYS_TRUE ;
-		else
-			return MAYBE;
-	}
+	else 
+		return meet(a,b,c);
 }
 
 void multiply(interval a, interval b, interval *c) {
@@ -137,7 +132,7 @@ void power(interval *a, unsigned int p) {
 	a->set_lower_bound(n,a->is_minus_inf());
 	a->set_upper_bound(m,a->is_plus_inf());
 }
-guard_resultt less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
+bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
 	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -146,11 +141,11 @@ guard_resultt less_than(interval *a, interval *b, interval *temp_a, interval *te
 	std::cout<<"\n\n PRINTING RESULT : ";
 	std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
  	if ( (!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
- 		return ALWAYS_TRUE;
+ 		return true;
  	}
  	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
  		std::cout << "Invalid Branch \n";
-		 return NEVER_TRUE;
+		 return false;
  	}
  	else {
 		temp_a->set_lower_bound(l1,a->is_minus_inf());
@@ -164,11 +159,11 @@ guard_resultt less_than(interval *a, interval *b, interval *temp_a, interval *te
 
 	temp_a->print_interval();
 	temp_b->print_interval();
-	 return MAYBE;
+	 return true;
 
  }
 
-guard_resultt greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
+bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
  	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -178,10 +173,10 @@ guard_resultt greater_than(interval *a, interval *b, interval *temp_a, interval 
 	std::cout<<l1<<" "<<l2<<" "<<u1<<" "<<u2<<" "<<"\n";
  	if ((!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
  		std::cout << "Invalid Branch \n";
-		 return NEVER_TRUE;
+		 return false;
  	}
  	else if ((!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf())) {
- 		return ALWAYS_TRUE;
+ 		return true;
  	}
  	else {
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
@@ -195,7 +190,7 @@ guard_resultt greater_than(interval *a, interval *b, interval *temp_a, interval 
 	temp_a->print_interval();
 	temp_b->print_interval();	 
 
-	 return MAYBE;
+	 return true;
  }
 void join(interval *a, interval *b) {
  	mp_integer l1 = a->get_lower_bound();
@@ -205,17 +200,17 @@ void join(interval *a, interval *b) {
  	a->set_lower_bound(min(l1, l2), a->is_minus_inf() || b->is_minus_inf());
  	a->set_upper_bound(max(u1, u2), a->is_plus_inf() || b->is_plus_inf());
  }
-guard_resultt not_equals(interval *a, interval *b) {
+bool not_equals(interval *a, interval *b) {
 	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
  	if ((l1 == u1) && (u1 == l2) && (l2 == u2) && !a->is_minus_inf() && !a->is_plus_inf() && !b->is_plus_inf() && !b->is_minus_inf()){
 		 std::cout<<"Invalid Branch \n";
-		 return NEVER_TRUE;
+		 return false;
 	 }
 	 else
-	 return MAYBE;
+	 return true;
 
 }
 bool widen(interval *a,interval *b,interval *temp){
