@@ -20,9 +20,10 @@ int main()
 	else
 		y = y+2;
 	
-	for(int i=0 ; i<5 ; i++)
+	for(int i=0 ; i<x ; )
 	{
 		x = x + 1 ;
+		i = i + 5 ;
 	}
 	return 0 ;
 }
