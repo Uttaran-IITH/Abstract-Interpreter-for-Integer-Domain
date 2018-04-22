@@ -27,6 +27,10 @@ class abstract_interpreter
 		void copy_map(std::map<irep_idt, interval*> &copy);
 		void widening (natural_loops_mutablet::natural_loopt &current_loop, natural_loops_mutablet &all_loops,
 										  goto_modelt &goto_model, namespacet &ns);
+		void remove_not(exprt &expr, namespacet &ns);
+
+		bool check_assert(exprt &expr, goto_modelt &goto_model, namespacet &ns);
+
 	public:
 		void run_interpreter(goto_modelt &goto_model);
 		void print_all();
@@ -36,6 +40,8 @@ class abstract_interpreter
 		void handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model, 
 						goto_programt::targett &it, bool &target_changed);	
 		void handle_loops(natural_loops_mutablet::natural_loopt &current_loop ,  natural_loops_mutablet &all_loops, goto_modelt &goto_model, namespacet &ns);
-
+		void handle_assertions(goto_programt::instructiont &instruction ,
+												goto_modelt &goto_model,
+												namespacet &ns) ;
 };
 

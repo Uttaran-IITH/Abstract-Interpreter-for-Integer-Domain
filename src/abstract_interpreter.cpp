@@ -9,12 +9,12 @@
 #include "util/simplify_expr.h"
 #include "analyses/natural_loops.h"
 #include "util/string2int.h"
-//Include
+
 #include "abstract_interpreter.h"
 #include "interval.h"
 #include "interval_utils.h"
 
-
+bool maybe;
 void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 {
 	std::cout<<"Running Interpreter : \n";
@@ -56,6 +56,7 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 																target_changed = true ;   
 															}
 															break ;	
+				case goto_program_instruction_typet::ASSERT : handle_assertions(*it, goto_model, ns); target_changed = false; break;											
 				default: std::cout<<"Cannot Recognise the instruction\n";	
 			}
 
@@ -312,17 +313,9 @@ void abstract_interpreter :: handle_assignments(goto_programt::instructiont &ins
 		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		interval temp = handle_rhs(expression, goto_model);
 
-		// if(!widen)
-		// {
+
 			it->second->make_equal(temp);			
-		// }
 
-		// else
-		// {
-		// 	bool widened = widen(it->second, temp);
-		// 	std::cout<<"Widened : ";
-
-		// }
 	}
 
 }
@@ -388,6 +381,42 @@ void abstract_interpreter :: set_rhs(exprt &rhs_expr, interval* &rhs , goto_mode
 	}	
 
 }
+
+void abstract_interpreter :: remove_not(exprt &expr, namespacet &ns)
+{	
+	if(can_cast_expr<not_exprt>)
+	{
+		exprt inside_expr = expr.op0();
+
+		if(inside_expr.id() == ID_equal)
+		{
+			//exprt new_expr(inside_expr.op0(), inside_expr.op1());
+			exprt new_expr(ID_notequal);
+			new_expr.operands().push_back(inside_expr.op0());
+			new_expr.operands().push_back(inside_expr.op1());
+
+			std::cout<<"NEW_EXPR : "<<expr2c(simplify_expr(new_expr, ns), ns)<<"\n\n";
+			expr = new_expr ;
+		}
+		else if(inside_expr.id() == ID_ge)
+		{
+			//binary_exprt new_expr(inside_expr.op0(), ID_lt, inside_expr.op1());
+			exprt new_expr(ID_lt);
+			new_expr.operands().push_back(inside_expr.op0());
+			new_expr.operands().push_back(inside_expr.op1());
+
+			expr = new_expr ;
+		}
+		else if(inside_expr.id() == ID_le)
+		{
+			//binary_exprt new_expr(inside_expr.op0(), ID_gt , inside_expr.op1());
+			exprt new_expr(ID_gt);
+			new_expr.operands().push_back(inside_expr.op0());
+			new_expr.operands().push_back(inside_expr.op1());
+			expr = new_expr ;
+		}
+	}
+}
 void abstract_interpreter :: handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model,
 										goto_programt::targett &it, bool &target_changed)
 {
@@ -402,28 +431,46 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 	if(expr.has_operands())
 	{		
 		bool take_branch ;
-		exprt expr_true = simplify_expr(expr, ns);
+		exprt expr_true = simplify_expr(expr,ns) ;
+
+		remove_not(expr_true, ns);
 
 		expr.make_not();
 		exprt expr_false =  expr;
 
-		std::cout<<"Branch Condition : "<<expr2c(expr_true, ns)<<"\n";
-
-		std::cout<<"Press 1 to take if branch and 0 for else branch : ";
-		std::cin>>take_branch;
-		std::cout<<"TAKE BRANCH? : "<<take_branch<<"\n";
+		std::cout<<"\n EXPRESSION TRUE : "<<expr2c(expr_true, ns)<<"\n";
+		std::cout<<"\n EXPRESSION FALSE : "<<expr2c(expr_false, ns)<<"\n";
+		std::cout<<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
 
 		bool can_take_branch;
 		exprt check_expr ;
+
+
+
+		
+
+		while(!can_take_branch)
+		{
+
+		std::cout<<"Branch Condition : "<<expr2c(expr_true, ns)<<"\n";
+		std::cout<<"Press 1 to take if branch and 0 for else branch : ";
+		std::cin>>take_branch;
+		std::cout<<"TAKE BRANCH? : "<<take_branch<<"\n";	
 
 		if(!take_branch)
 
 			check_expr = expr_false ;
 		else
+		{
 			check_expr = expr_true ;
+			std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
+
+			remove_not(check_expr,ns);
+			std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
+
+		}
 
 		std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
-
 
 		if(can_cast_expr<binary_relation_exprt>(check_expr))
 		{
@@ -440,8 +487,9 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 			set_rhs(rhs_expr, rhs, goto_model);
 
 
-			if(expr.id() == ID_equal)
+			if(binary_relation_expr.id() == ID_equal)
 			{
+				std::cout<<"Comes in EQUALS\n\n";
 				interval* temp ;
 				if(lhs->get_sign() == integer_type::UNSIGNED 
 					|| rhs->get_sign() ==integer_type::UNSIGNED)
@@ -458,16 +506,48 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 					lhs->make_equal(*temp);
 					rhs->make_equal(*temp);
 				}
+				else
+				{
+					std::cout<<"This branch cannot be taken!\n";
+					continue ;
+				}
 			}
-			else if(expr.id() == ID_notequal)
+			else if(binary_relation_expr.id() == ID_notequal)
 			{
-				//take_branch = 
+				can_take_branch = not_equals(lhs, rhs);
+				std::cout<<"Comes NOT EQUALS\n";
+
+				if(!can_take_branch)
+				{
+					std::cout<<"This branch cannot be taken!\n";
+					continue ;					
+				}
 			}
-			else if(expr.id() == ID_ge || expr.id() == ID_gt)
+			else if(binary_relation_expr.id() == ID_ge || binary_relation_expr.id() == ID_gt)
 			{
+				interval* temp_a;
+				interval* temp_b;
+				temp_a = new interval(integer_type::SIGNED);
+				temp_b = new interval(integer_type :: UNSIGNED);
+
+				can_take_branch = greater_than(lhs,rhs,temp_a,temp_b);
+
+				if(can_take_branch)
+				{
+					lhs->make_equal(*temp_a);
+					std::cout<<"LHS : ";
+					lhs->print_interval();
+					std::cout<<"\n\n";
+					rhs->make_equal(*temp_b);
+				}
+				else
+				{
+					std::cout<<"This branch cannot be taken!\n";
+					continue ;
+				}				
 
 			}
-			else if(expr.id() == ID_le || expr.id() == ID_lt)
+			else if(binary_relation_expr.id() == ID_le || binary_relation_expr.id() == ID_lt)
 			{
 				interval* temp_a;
 				interval* temp_b;
@@ -484,21 +564,26 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 					std::cout<<"\n\n";
 					rhs->make_equal(*temp_b);
 				}
+				else
+				{
+					std::cout<<"This branch cannot be taken!\n";
+					continue ;
+				}
+
 			}
 
 			else
 				std::cout<<"Unidentified Binary Relation Operator\n\n";
 
-			can_take_branch = true ;
+			// can_take_branch = true ;
 
 			if(take_branch && can_take_branch)
 			{
 				std::cout<<"Setting Target : \n";
 				target_changed = true ;
 				it = instruction.get_target();
-
-				//std::cout<<"Set target as : "<<as_string(ns, *it)<<"\n\n";
 			}
+		}
 		}
 	}
 
@@ -536,7 +621,7 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 			set_rhs(rhs_expr, rhs, goto_model);
 			std::cout<<"After\n";
 
-			if(expr.id() == ID_equal)
+			if(binary_relation_expr.id() == ID_equal)
 			{
 				interval* temp ;
 				if(lhs->get_sign() == integer_type::UNSIGNED 
@@ -551,12 +636,12 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 
 			}
 
-			else if(expr.id() == ID_notequal)
+			else if(binary_relation_expr.id() == ID_notequal)
 			{
 				can_enter_loop = not_equals(lhs, rhs);
 			}
 
-			else if(expr.id() == ID_ge || expr.id() == ID_gt)
+			else if(binary_relation_expr.id() == ID_ge || binary_relation_expr.id() == ID_gt)
 			{
 				std::cout<<"Comes into greater_than \n ";
 				interval* temp_a;
@@ -573,7 +658,7 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 				//std::cout<<"After : "<<can_enter_loop<<"\n\n";
 			}
 
-			else if(expr.id() == ID_le || expr.id() == ID_lt)
+			else if(binary_relation_expr.id() == ID_le || binary_relation_expr.id() == ID_lt)
 			{
 				std::cout<<"Comes into less than\n";
 				interval* temp_a;
@@ -895,7 +980,7 @@ void abstract_interpreter :: handle_assignments_widen(goto_programt::instruction
 		
 		interval temp_widened(integer_type::SIGNED);
 
-		std::map<irep_idt, interval*>::iterator it_p = interval_map_prev.find(it->first);
+		//std::map<irep_idt, interval*>::iterator it_p = interval_map_prev.find(it->first);
 
 		bool widened = widen(it->second, &temp , &temp_widened);
 
@@ -917,3 +1002,94 @@ void abstract_interpreter :: handle_assignments_widen(goto_programt::instruction
 	}
 
 }
+
+bool abstract_interpreter :: check_assert(exprt &expr, goto_modelt &goto_model, namespacet &ns)
+{
+	bool  is_not = false ;
+
+	if(can_cast_expr<not_exprt>(expr))
+	{
+		expr.make_not();
+		is_not = true ;
+	}	
+
+	if(expr.id() == ID_equal || expr.id() == ID_notequal || expr.id() == ID_lt || expr.id() == ID_le || expr.id() == ID_gt || expr.id() == ID_ge)
+	{
+		maybe = false ;
+
+		if(!is_not)
+		{
+
+		   if(check_condition(expr, goto_model, ns) && !maybe)
+		   	return true ;
+		   else
+		   	return false ;
+		}
+		else
+		{
+			if(!check_condition(expr, goto_model, ns) && !maybe) 
+				return true;
+			else
+				return false ;
+		}	
+	}
+
+	else
+	{
+		if(expr.id() == ID_and)
+		{
+			bool lhs = check_assert(expr.op0(), goto_model, ns);
+			bool rhs = check_assert(expr.op1(), goto_model, ns);
+			bool extra1 = true ;
+			bool extra2 = true ;
+
+			if(expr.operands().size() >= 3)
+				extra1 = check_assert(expr.op2(), goto_model, ns);
+
+			if(expr.operands().size() == 4)
+				extra2 = check_assert(expr.op3(), goto_model, ns);
+
+			if(is_not)
+				return !(lhs && rhs && extra1 && extra2);
+			else
+				return (lhs && rhs && extra1 && extra2);
+		}
+
+		else if(expr.id() == ID_or)
+		{
+			bool lhs = check_assert(expr.op0(), goto_model, ns);
+			bool rhs = check_assert(expr.op1(), goto_model, ns);
+			bool extra1 = true ;
+			bool extra2 = true ;
+
+			if(expr.operands().size() >= 3)
+				extra1 = check_assert(expr.op2(), goto_model, ns);
+
+			if(expr.operands().size() == 4)
+				extra2 = check_assert(expr.op3(), goto_model, ns);
+
+			if(is_not)
+				return !(lhs || rhs || extra1 || extra2);
+			else
+				return (lhs || rhs || extra1 || extra2);			
+		}
+
+		else
+		{
+			std::cout<<"Cannot Recognise Operator\n";
+			return false ;
+		}
+	}	
+}
+
+void abstract_interpreter :: handle_assertions(goto_programt::instructiont &instruction ,
+												goto_modelt &goto_model,
+												namespacet &ns)
+{
+	exprt guard_expr = instruction.guard  ;
+
+	if(check_assert(guard_expr, goto_model, ns))
+		std::cout<<"Assertion PASS\n\n" ;
+	else
+		std::cout<<"Assertions FAILS\n\n";
+}	
