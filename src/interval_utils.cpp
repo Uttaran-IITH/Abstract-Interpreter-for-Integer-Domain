@@ -45,14 +45,17 @@ bool meet(interval *a, interval *b, interval* &c) {
 	mp_integer u1 = a->get_upper_bound();
 	mp_integer l2 = b->get_lower_bound();
 	mp_integer u2 = b->get_upper_bound();
-	if (u1 < l2 || u2 < l1) {
+	if ((u1 < l2 && !b->is_minus_inf()) || (u2 < l1 && !a->is_minus_inf())) {
 		std::cout << "Invalid";
 		return false ;
 	}
+	if((u1 == u2) && (a->is_plus_inf() == b->is_plus_inf()) && (l1 == l2) && (a->is_minus_inf() == b->is_minus_inf()))
+		return true;
 	else 
 	{
 		c->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
 		c->set_upper_bound(min(u1,u2),a->is_plus_inf() && b->is_plus_inf());
+		maybe = true;
 		return true ;
 	}
 }
@@ -62,17 +65,12 @@ bool equals(interval *a, interval *b, interval* &c) {
 	mp_integer u1 = a->get_upper_bound();
 	mp_integer l2 = b->get_lower_bound();
 	mp_integer u2 = b->get_upper_bound();
-	if (u1 < l2 || u2 < l1) {
+	if ((u1 < l2 && !b->is_minus_inf())|| (u2 < l1 && !a->is_minus_inf())) {
 		std::cout<<"Infeasible Branch\n";
 		return false ;
 	}
-	else {
-		
-		if(meet(a, b, c))
-			return true ;
-		else
-			return false;
-	}
+	else 
+		return meet(a,b,c);
 }
 
 void multiply(interval a, interval b, interval *c) {
@@ -137,15 +135,18 @@ void power(interval *a, unsigned int p) {
 	a->set_lower_bound(n,a->is_minus_inf());
 	a->set_upper_bound(m,a->is_plus_inf());
 }
- bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
+bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
 	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
- 	if (u1 < l2) {
- 		return ALWAYS_TRUE;
+
+	std::cout<<"\n\n PRINTING RESULT : ";
+	std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
+ 	if ( (!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
+ 		return true;
  	}
- 	else if (u2 < l1) {
+ 	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
  		std::cout << "Invalid Branch \n";
 		 return NEVER_TRUE;
  	}
@@ -158,8 +159,10 @@ void power(interval *a, unsigned int p) {
 		if(greater_than(b,a,temp_b,temp_a,1)){}
 
 	}
-
-	 return MAYBE;
+	temp_a->print_interval();
+	temp_b->print_interval();
+	maybe = true;
+	 return true;
 
  }
 
@@ -168,12 +171,15 @@ guard_resultt greater_than(interval *a, interval *b, interval *temp_a, interval 
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
- 	if (u1 < l2) {
+
+	std::cout<<"\n\n PRINTING RESULT : ";
+	std::cout<<l1<<" "<<l2<<" "<<u1<<" "<<u2<<" "<<"\n";
+ 	if ((!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
  		std::cout << "Invalid Branch \n";
 		 return NEVER_TRUE;
  	}
- 	else if (u2 < l1) {
- 		return ALWAYS_TRUE;
+ 	else if ((!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf())) {
+ 		return true;
  	}
  	else {
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
@@ -182,9 +188,10 @@ guard_resultt greater_than(interval *a, interval *b, interval *temp_a, interval 
  	
 	if(l == 0)
 		if(less_than(b,a,temp_b,temp_a,1)){}
-	 
-
-	 return MAYBE;
+	temp_a->print_interval();
+	temp_b->print_interval();	 
+	 maybe = true;
+	 return true;
  }
 void join(interval *a, interval *b) {
  	mp_integer l1 = a->get_lower_bound();
@@ -199,7 +206,7 @@ bool not_equals(interval *a, interval *b) {
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
- 	if ((l1 == u1) && (u1 == l2) && (l2 == u2)){
+ 	if ((l1 == u1) && (u1 == l2) && (l2 == u2) && !a->is_minus_inf() && !a->is_plus_inf() && !b->is_plus_inf() && !b->is_minus_inf()){
 		 std::cout<<"Invalid Branch \n";
 		 return false;
 	 }
@@ -213,16 +220,15 @@ bool widen(interval *a,interval *b,interval *temp){
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
 	if(l1 > l2){
+			temp->set_upper_bound(a->get_upper_bound(), a->is_plus_inf());
 		if(!a->is_minus_inf())
-			temp->set_lower_bound(b->get_lower_bound(),true);
-		else
-			return false;
-	}
-	if (u1 < u2){
-		if(!a->is_plus_inf())
+
+			std::cout<<"Should Come Here for Widening\n";
+
+			temp->set_lower_bound(a->get_lower_bound(), a->is_minus_inf());
 			temp->set_upper_bound(b->get_upper_bound(),true);
-		else
-			return false;
+			return true ;
 	}
-	return true;
+	
+	return false;
 }
