@@ -148,7 +148,7 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
  	}
  	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
  		std::cout << "Invalid Branch \n";
-		 return false;
+		 return NEVER_TRUE;
  	}
  	else {
 		temp_a->set_lower_bound(l1,a->is_minus_inf());
@@ -159,7 +159,6 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 		if(greater_than(b,a,temp_b,temp_a,1)){}
 
 	}
-
 	temp_a->print_interval();
 	temp_b->print_interval();
 	maybe = true;
@@ -167,7 +166,7 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 
  }
 
-bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
+guard_resultt greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
  	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
@@ -177,7 +176,7 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
 	std::cout<<l1<<" "<<l2<<" "<<u1<<" "<<u2<<" "<<"\n";
  	if ((!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
  		std::cout << "Invalid Branch \n";
-		 return false;
+		 return NEVER_TRUE;
  	}
  	else if ((!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf())) {
  		return true;
@@ -189,8 +188,6 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
  	
 	if(l == 0)
 		if(less_than(b,a,temp_b,temp_a,1)){}
-
-
 	temp_a->print_interval();
 	temp_b->print_interval();	 
 	 maybe = true;
@@ -224,11 +221,7 @@ bool widen(interval *a,interval *b,interval *temp){
  	mp_integer u2 = b->get_upper_bound();
 	if(l1 > l2){
 			temp->set_upper_bound(a->get_upper_bound(), a->is_plus_inf());
-			temp->set_lower_bound(b->get_lower_bound(),true);
-
-			return true;
-	}
-	if (u1 < u2){
+		if(!a->is_minus_inf())
 
 			std::cout<<"Should Come Here for Widening\n";
 
