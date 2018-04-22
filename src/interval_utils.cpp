@@ -49,7 +49,7 @@ bool meet(interval *a, interval *b, interval* &c) {
 		std::cout << "Invalid";
 		return false ;
 	}
-	if((u1 == u2) && (a->is_plus_inf() == b->plus_inf()) && ((l1 == l2) && (a->is_minus_inf() == b->is_minus_inf()))
+	if((u1 == u2) && (a->is_plus_inf() == b->plus_inf()) && (l1 == l2) && (a->is_minus_inf() == b->is_minus_inf()))
 		return true
 	else 
 	{
