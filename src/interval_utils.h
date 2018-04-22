@@ -17,5 +17,5 @@ bool meet(interval *a, interval *b, interval* &c);
 void join(interval *a, interval *b);
 bool widen(interval *a,interval *b,interval *temp);
 guard_resultt greater_than(interval *a, interval *b,interval*,interval*,int l = 0);
-bool not_equals(interval*,interval*);
+guard_resultt not_equals(interval*,interval*);
 #endif

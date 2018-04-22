@@ -3,6 +3,7 @@
  ***********************************************/
 #include <climits>
 #include <iostream>
+#include <string>
 #include "interval.h"
 
 
@@ -14,7 +15,7 @@ interval :: interval(integer_type type)
 		upper_bound = -1 ;
 		sign = SIGNED ;
 		plus_inf = true ;
-		minus_inf  = false ;
+		minus_inf  = true ;
 	}
 	
 	else
@@ -27,12 +28,12 @@ interval :: interval(integer_type type)
 	}	
 }
 
-int interval :: get_lower_bound()
+mp_integer interval :: get_lower_bound()
 {
 	return lower_bound;
 }
 
-int interval :: get_upper_bound()
+mp_integer interval :: get_upper_bound()
 {
 	 return upper_bound ;
 }
@@ -52,19 +53,52 @@ bool interval :: is_minus_inf()
 	return minus_inf;
 }
 
-void interval :: set_lower_bound(int value)
+void interval :: set_lower_bound(mp_integer value, bool minus_inf_temp)
 {
 	lower_bound = value ;
+	minus_inf = minus_inf_temp ;
 }
 
-void interval :: set_upper_bound(int value)
+void interval :: set_upper_bound(mp_integer value, bool plus_inf_temp)
 {
 	upper_bound = value ;
+	plus_inf = plus_inf_temp ;
 }
 
 void interval :: print_interval()
 {
-	std::cout<<"[ "<<lower_bound<<" , "<<upper_bound<<" ]";  
+	std::string lower = "" ;
+	std::string upper = "" ;
+	if((sign == SIGNED) && (minus_inf==true))
+		lower  = "-inf";
+
+	if(plus_inf == true)
+		upper = "+inf" ;
+
+
+	std::cout<<"[ " ;
+
+	if(lower == "")
+		std::cout<<lower_bound ;
+	else
+		std::cout<<lower;
+	
+	std::cout<<" , " ;
+
+	if(upper == "")
+		std::cout<<upper_bound ;
+	else
+		std::cout<<upper ;
+
+	std::cout<<" ]";  
+}
+
+void interval :: make_equal(interval temp_interval)
+{
+	this->lower_bound = temp_interval.get_lower_bound();
+	this->upper_bound = temp_interval.get_upper_bound();
+	this->minus_inf = temp_interval.is_minus_inf();
+	this->plus_inf = temp_interval.is_plus_inf();
 }
 // signed_interval::signed_interval()
 // {
@@ -74,12 +108,12 @@ void interval :: print_interval()
 // 	minus_inf = false ;
 // }
 
-// int signed_interval :: get_lower_bound()
+// mp_integer signed_interval :: get_lower_bound()
 // {
 // 	return lower_bound;
 // }
 
-// int signed_interval :: get_upper_bound()
+// mp_integer signed_interval :: get_upper_bound()
 // {
 // 	 return upper_bound ;
 // }
@@ -93,12 +127,12 @@ void interval :: print_interval()
 // 	plus_inf = true ;
 // }
 
-// unsigned int unsigned_interval :: get_lower_bound()
+// unsigned mp_integer unsigned_interval :: get_lower_bound()
 // {
 // 	return lower_bound;
 // }
 
-// unsigned int unsigned_interval :: get_upper_bound()
+// unsigned mp_integer unsigned_interval :: get_upper_bound()
 // {
 // 	 return upper_bound ;
 // }

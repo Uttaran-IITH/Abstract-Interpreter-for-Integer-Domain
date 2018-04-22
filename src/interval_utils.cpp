@@ -205,17 +205,17 @@ void join(interval *a, interval *b) {
  	a->set_lower_bound(min(l1, l2), a->is_minus_inf() || b->is_minus_inf());
  	a->set_upper_bound(max(u1, u2), a->is_plus_inf() || b->is_plus_inf());
  }
-bool not_equals(interval *a, interval *b) {
+guard_resultt not_equals(interval *a, interval *b) {
 	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
  	if ((l1 == u1) && (u1 == l2) && (l2 == u2) && !a->is_minus_inf() && !a->is_plus_inf() && !b->is_plus_inf() && !b->is_minus_inf()){
 		 std::cout<<"Invalid Branch \n";
-		 return false;
+		 return NEVER_TRUE;
 	 }
 	 else
-	 return true;
+	 return MAYBE;
 
 }
 bool widen(interval *a,interval *b,interval *temp){
@@ -224,16 +224,19 @@ bool widen(interval *a,interval *b,interval *temp){
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
 	if(l1 > l2){
-		if(!temp->is_minus_inf())
+			temp->set_upper_bound(a->get_upper_bound(), a->is_plus_inf());
 			temp->set_lower_bound(b->get_lower_bound(),true);
-		else
-			return false;
+
+			return true;
 	}
 	if (u1 < u2){
-		if(!temp->is_plus_inf())
+
+			std::cout<<"Should Come Here for Widening\n";
+
+			temp->set_lower_bound(a->get_lower_bound(), a->is_minus_inf());
 			temp->set_upper_bound(b->get_upper_bound(),true);
-		else
-			return false;
+			return true ;
 	}
-	return true;
+	
+	return false;
 }
