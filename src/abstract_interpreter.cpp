@@ -463,14 +463,14 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		else
 		{
 			check_expr = expr_true ;
-			std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
+			//std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
 
 			remove_not(check_expr,ns);
-			std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
+			//std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
 
 		}
 
-		std::cout<<"CHECKING RELATION : "<<expr2c(simplify_expr(check_expr, ns), ns)<<"\n\n";
+		std::cout<<"CHECKING RELATION : "<<expr2c(check_expr, ns)<<"\n\n";
 
 		if(can_cast_expr<binary_relation_exprt>(check_expr))
 		{
@@ -503,8 +503,8 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 
 				if(can_take_branch)
 				{
-					lhs->make_equal(*temp);
-					rhs->make_equal(*temp);
+					// lhs->make_equal(*temp);
+					// rhs->make_equal(*temp);
 				}
 				else
 				{
@@ -534,11 +534,11 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 
 				if(can_take_branch)
 				{
-					lhs->make_equal(*temp_a);
-					std::cout<<"LHS : ";
-					lhs->print_interval();
-					std::cout<<"\n\n";
-					rhs->make_equal(*temp_b);
+					// lhs->make_equal(*temp_a);
+					// std::cout<<"LHS : ";
+					// lhs->print_interval();
+					// std::cout<<"\n\n";
+					// rhs->make_equal(*temp_b);
 				}
 				else
 				{
@@ -558,11 +558,11 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 
 				if(can_take_branch)
 				{
-					lhs->make_equal(*temp_a);
-					std::cout<<"LHS : ";
-					lhs->print_interval();
-					std::cout<<"\n\n";
-					rhs->make_equal(*temp_b);
+					// lhs->make_equal(*temp_a);
+					// std::cout<<"LHS : ";
+					// lhs->print_interval();
+					// std::cout<<"\n\n";
+					// rhs->make_equal(*temp_b);
 				}
 				else
 				{
