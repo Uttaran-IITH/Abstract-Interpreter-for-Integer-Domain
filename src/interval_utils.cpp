@@ -137,8 +137,10 @@ bool meet(interval *a, interval *b, interval* &c) {
 		std::cout << "Invalid";
 		return false ;
 	}
-	if((u1 == u2) && (a->is_plus_inf() == b->is_plus_inf()) && (l1 == l2) && (a->is_minus_inf() == b->is_minus_inf()))
+	if((u1 == u2) && (a->is_plus_inf() == b->is_plus_inf()) && (l1 == l2) && (a->is_minus_inf() == b->is_minus_inf())){
+		c = a;
 		return true;
+	}
 	else 
 	{
 		c->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
@@ -171,6 +173,8 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 	std::cout<<"\n\n PRINTING RESULT : ";
 	std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
  	if ( (!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
+		temp_a = a;
+		temp_b = b;
  		return true;
  	}
  	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
@@ -187,8 +191,8 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 
 	}
 
-	temp_a->print_interval();
-	temp_b->print_interval();
+	//temp_a->print_interval();
+	//temp_b->print_interval();
 	maybe = true;
 	 return true;
 
@@ -207,7 +211,9 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
 		 return false;
  	}
  	else if ((!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf())) {
- 		return true;
+ 		temp_a = a;
+		temp_b = b;
+		return true;
  	}
  	else {
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
