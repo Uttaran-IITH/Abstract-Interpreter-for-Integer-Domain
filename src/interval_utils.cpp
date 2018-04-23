@@ -91,7 +91,7 @@ void multiply(interval a, interval b, interval *c)
 	c->set_lower_bound(n, neg_inf);
 }
 bool divide(interval a,interval b,interval *c){
-	if(b.get_lower_bound()==0 || b.get_upper_bound()==0){
+	if((b.get_lower_bound()==0 && !b.is_minus_inf()) || (b.get_upper_bound()==0 && !b.is_plus_inf())){
 		std::cout<<"Cannot divide by 0\n";
 		return false;
 	}
@@ -102,22 +102,21 @@ bool divide(interval a,interval b,interval *c){
  		a.get_upper_bound() / b.get_lower_bound(),
  		a.get_upper_bound() / b.get_upper_bound()
  	};
-	bool pos_inf = 0, neg_inf = 0;
-	if( (a.is_minus_inf() && (b.get_lower_bound() < 0 || b.get_upper_bound() < 0 || b.is_minus_inf())) || 
-		(b.is_minus_inf() && (a.get_lower_bound() < 0 || a.get_upper_bound() < 0)) || 
-		(a.is_plus_inf() && (b.is_plus_inf() || b.get_lower_bound() > 0 || b.get_upper_bound() > 0 )) ||
-		(b.is_plus_inf() && (a.get_lower_bound() > 0 && a.get_upper_bound() > 0))  ) 
-		pos_inf = 1 ;
-	if( (a.is_minus_inf() && (b.get_lower_bound() > 0 || b.get_upper_bound() > 0 || b.is_plus_inf())) || 
-		(b.is_minus_inf() && (a.get_lower_bound() > 0 || a.get_upper_bound() > 0)) || 
-		(a.is_plus_inf() && (b.is_minus_inf() || b.get_lower_bound() < 0 || b.get_upper_bound() < 0 )) ||
-		(b.is_plus_inf() && (a.get_lower_bound() < 0 && a.get_upper_bound() < 0))  ) 
-		neg_inf = 1 ;
- 	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
+	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
  	mp_integer n = min(min(min(temp[0],temp[1]),temp[2]),temp[3]);
-	c->set_upper_bound(m + 1, pos_inf);
-	c->set_lower_bound(n, neg_inf);
+	if((!a.is_minus_inf() && !a.is_plus_inf()) && (b.is_plus_inf() || b.is_minus_inf())){
+		c->set_lower_bound(min(n,0),false);
+		c->set_upper_bound(max(m,0),false);
 	}
+	else if ((a.is_minus_inf() || a.is_plus_inf()) && (!b.is_plus_inf() && !b.is_minus_inf())){
+		c->set_lower_bound(n,a.is_minus_inf());
+		c->set_upper_bound(m,a.is_plus_inf());
+	}
+	else{
+		c->set_lower_bound(n,true);
+		c->set_upper_bound(m,true);
+	}
+}
 	return true;
 }
 void power(interval *a, unsigned int p) {
@@ -138,8 +137,10 @@ bool meet(interval *a, interval *b, interval* &c) {
 		std::cout << "Invalid";
 		return false ;
 	}
-	if((u1 == u2) && (a->is_plus_inf() == b->is_plus_inf()) && (l1 == l2) && (a->is_minus_inf() == b->is_minus_inf()))
+	if((u1 == u2) && (a->is_plus_inf() == b->is_plus_inf()) && (l1 == l2) && (a->is_minus_inf() == b->is_minus_inf())){
+		c = a;
 		return true;
+	}
 	else 
 	{
 		c->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
@@ -172,6 +173,8 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 	std::cout<<"\n\n PRINTING RESULT : ";
 	std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
  	if ( (!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
+		temp_a = a;
+		temp_b = b;
  		return true;
  	}
  	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
@@ -188,8 +191,8 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 
 	}
 
-	temp_a->print_interval();
-	temp_b->print_interval();
+	//temp_a->print_interval();
+	//temp_b->print_interval();
 	maybe = true;
 	 return true;
 
@@ -208,7 +211,9 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
 		 return false;
  	}
  	else if ((!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf())) {
- 		return true;
+ 		temp_a = a;
+		temp_b = b;
+		return true;
  	}
  	else {
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());

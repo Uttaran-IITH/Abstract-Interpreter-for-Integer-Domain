@@ -31,6 +31,15 @@ class abstract_interpreter
 
 		bool check_assert(exprt &expr, goto_modelt &goto_model, namespacet &ns);
 
+
+		//NEWLY IMPLEMENTED FOR HANDLING BRANCHES
+		void iterate_over_if(goto_programt::targett &it, goto_modelt &goto_model, 
+						   goto_programt::targett &target_if, goto_programt::targett &target_end, bool &else_present, natural_loops_mutablet &loops, namespacet &ns) ;
+		void check_if_else_present(goto_programt::targett &it, goto_programt::targett &target_end, goto_programt::targett &target_if, bool &else_present) ;
+		void iterate_over_else(goto_programt::targett &it, goto_modelt &goto_model, 
+						   goto_programt::targett &target_end, natural_loops_mutablet &loops, namespacet &ns) ;
+		void restore_map(std::map<irep_idt, interval*> &copy) ;
+
 	public:
 		void run_interpreter(goto_modelt &goto_model);
 		void print_all();
@@ -38,7 +47,7 @@ class abstract_interpreter
 		void handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model);	
 		void handle_assignments_widen(goto_programt::instructiont &instruction, goto_modelt &goto_model, std::map<irep_idt, interval*> &interval_map_prev);	
 		void handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model, 
-						goto_programt::targett &it, bool &target_changed);	
+						goto_programt::targett &it, bool &target_changed, natural_loops_mutablet &loops, namespacet &ns);	
 		void handle_loops(natural_loops_mutablet::natural_loopt &current_loop ,  natural_loops_mutablet &all_loops, goto_modelt &goto_model, namespacet &ns);
 		void handle_assertions(goto_programt::instructiont &instruction ,
 												goto_modelt &goto_model,
