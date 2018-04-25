@@ -31,6 +31,7 @@ class abstract_interpreter
 
 		bool check_assert(exprt &expr, goto_modelt &goto_model, namespacet &ns);
 
+		bool check_if_equal(interval* first , interval* second);
 
 		//NEWLY IMPLEMENTED FOR HANDLING BRANCHES
 		void iterate_over_if(goto_programt::targett &it, goto_modelt &goto_model, 

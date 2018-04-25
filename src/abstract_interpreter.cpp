@@ -68,6 +68,7 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 															}
 															else
 															{
+																std::cout<<"\n\n LOOP FOUND \n\n";
 																handle_loops(loops.loop_map.find(it)->second, loops, goto_model, ns);
 																it = instruction.get_target();
 																target_changed = true ;   
@@ -399,16 +400,16 @@ void abstract_interpreter :: set_lhs(symbol_exprt &lhs_sym, interval* &lhs, goto
 
 void abstract_interpreter :: set_rhs(exprt &rhs_expr, interval* &rhs , goto_modelt &goto_model)
 {
-	std::cout<<"\n\n SETTING RHS \n\n";
+	//std::cout<<"\n\n SETTING RHS \n\n";
 
 	if(rhs_expr.id() == ID_constant)
 	{
-		std::cout<<"Before integer\n";
+		//std::cout<<"Before integer\n";
 		constant_exprt constant_expr = to_constant_expr(rhs_expr);
 		mp_integer value;
-		std::cout<<"Before integer\n";
+		//std::cout<<"Before integer\n";
 		to_integer(constant_expr, value);
-		std::cout<<"After integer : "<<value<<"\n\n" ;
+		//std::cout<<"After integer : "<<value<<"\n\n" ;
 		rhs = new interval(integer_type::SIGNED) ;
 		rhs->set_lower_bound(value, false);
 		rhs->set_upper_bound(value, false);
@@ -419,7 +420,7 @@ void abstract_interpreter :: set_rhs(exprt &rhs_expr, interval* &rhs , goto_mode
 
 	else
 	{
-		std::cout<<"\nComing in ELse\n";
+		//std::cout<<"\nComing in ELse\n";
 
 		symbol_exprt symbol_expr = to_symbol_expr(rhs_expr);
 		const symbolt* symbol = goto_model.symbol_table.lookup(symbol_expr.get_identifier());
@@ -451,7 +452,7 @@ void abstract_interpreter :: remove_not(exprt &expr, namespacet &ns)
 			new_expr.operands().push_back(inside_expr.op0());
 			new_expr.operands().push_back(inside_expr.op1());
 
-			std::cout<<"NEW_EXPR : "<<expr2c(simplify_expr(new_expr, ns), ns)<<"\n\n";
+			//std::cout<<"NEW_EXPR : "<<expr2c(simplify_expr(new_expr, ns), ns)<<"\n\n";
 			expr = new_expr ;
 		}
 		else if(inside_expr.id() == ID_ge)
@@ -482,17 +483,17 @@ void abstract_interpreter :: iterate_over_if(goto_programt::targett &it, goto_mo
 	while(!if_end && it != target_if)
 	{
 		goto_programt::instructiont instruction = *it ;
-		std::cout<<"STAYS HERE\n\n";
+		//std::cout<<"STAYS HERE\n\n";
 
 		std::cout<<"Instruction : "<<as_string(ns, *it)<<"\n";
-		std::cout<<"Target If  : "<<as_string(ns, *target_if)<<"\n";
+		//std::cout<<"Target If  : "<<as_string(ns, *target_if)<<"\n";
 		bool target_changed = false;
 
 		switch(it->type )
 		{
 			case goto_program_instruction_typet::DECL :  handle_declaration(*it, goto_model); break;
 
-			case goto_program_instruction_typet::ASSIGN : std::cout<<"^^^^ ASSIGNMENT ^^^^^\n\n"; handle_assignments(*it, goto_model); target_changed = false ; break ;
+			case goto_program_instruction_typet::ASSIGN : handle_assignments(*it, goto_model); target_changed = false ; break ;
 
 			case goto_program_instruction_typet::GOTO : if(!check_if_loop(loops, it) && status == NO_ASSERTION && instruction.guard.has_operands()) 
 														{
@@ -500,7 +501,7 @@ void abstract_interpreter :: iterate_over_if(goto_programt::targett &it, goto_mo
 															target_changed = true ;
 														}
 
-														if(!check_if_loop(loops, it) && status == NO_ASSERTION && !instruction.guard.has_operands()) 
+														else if(!check_if_loop(loops, it) && status == NO_ASSERTION && !instruction.guard.has_operands()) 
 														{
 
 																target_end = it->get_target();
@@ -519,8 +520,9 @@ void abstract_interpreter :: iterate_over_if(goto_programt::targett &it, goto_mo
 															status = NO_ASSERTION ;
 
 														}
-														else
+														else //if(check_if_loop(loops, it))
 														{
+															std::cout<<"\n HANDLE LOOPS FOUND in iterate_over_if \n";
 															handle_loops(loops.loop_map.find(it)->second, loops, goto_model, ns);
 															it = instruction.get_target();
 															target_changed = true ;   
@@ -534,7 +536,7 @@ void abstract_interpreter :: iterate_over_if(goto_programt::targett &it, goto_mo
 		if(!target_changed)
 			{
 				it++ ;
-				std::cout<<"Incremented it\n\n";
+				//std::cout<<"Incremented it\n\n";
 			}
 
 		//getchar();
@@ -551,7 +553,7 @@ void abstract_interpreter :: check_if_else_present(goto_programt::targett &it, g
 
 	while(it!= target_if && !if_end)
 	{
-		std::cout<<"Coming in HERE\n\n";
+		//std::cout<<"Coming in HERE\n\n";
 		if(it->type == goto_program_instruction_typet::GOTO )
 		{
 			if(!(*it).guard.has_operands() && nested_goto_found ==0)
@@ -622,6 +624,7 @@ void abstract_interpreter :: iterate_over_else(goto_programt::targett &it, goto_
 														}
 														else
 														{
+															std::cout<<"\n\n LOOP FOUND HERE  in iterate over else\n\n";
 															handle_loops(loops.loop_map.find(it)->second, loops, goto_model, ns);
 															it = (*it).get_target();
 															target_changed = true ;   
@@ -642,6 +645,9 @@ void abstract_interpreter ::restore_map(std::map<irep_idt, interval*> &copy)
 	std::map<irep_idt, interval*>::iterator it = copy.begin();
 	interval* copied_interval;
 
+	// std::cout<<"\n MAP HERE : \n";
+	// print_all();
+
 	interval_map.clear();
 
 	while(it!=copy.end())
@@ -658,7 +664,7 @@ void abstract_interpreter ::restore_map(std::map<irep_idt, interval*> &copy)
 		if(it->second->is_minus_inf())
 			copied_interval->set_lower_bound(-1, true);
 		else
-			copied_interval->set_lower_bound(it->second->get_upper_bound(), false);
+			copied_interval->set_lower_bound(it->second->get_lower_bound(), false);
 
 		if(it->second->is_plus_inf())
 			copied_interval->set_upper_bound(-1, true);
@@ -668,7 +674,10 @@ void abstract_interpreter ::restore_map(std::map<irep_idt, interval*> &copy)
 		interval_map.insert(std::pair<irep_idt, interval*>(it->first, copied_interval));
 
 		it++ ;
-	}	
+	}
+
+	std::cout<<"\nRestored MAP : \n";
+	print_all();	
 }
 
 void abstract_interpreter :: handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model,
@@ -683,7 +692,7 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 	{
 		exprt expr(instruction.guard);
 		exprt comp_expr;
-		std::cout<<"EXPRESSION NIL? :"<<expr.has_operands()<<"\n";
+		//std::cout<<"EXPRESSION NIL? :"<<expr.has_operands()<<"\n";
 
 	if(expr.has_operands())
 	{		
@@ -694,15 +703,15 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		expr.make_not();
 		exprt expr_false =  expr;
 
-		std::cout<<"\n EXPRESSION TRUE : "<<expr2c(expr_true, ns)<<"\n";
-		std::cout<<"\n EXPRESSION FALSE : "<<expr2c(expr_false, ns)<<"\n";
-		std::cout<<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
+		// std::cout<<"\n EXPRESSION TRUE : "<<expr2c(expr_true, ns)<<"\n";
+		// std::cout<<"\n EXPRESSION FALSE : "<<expr2c(expr_false, ns)<<"\n";
+		// std::cout<<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
 
 		//bool can_take_branch = false ;
 
 		target_if = instruction.get_target();
 
-		std::cout<<"Target Instruction : "<<as_string(ns, *target_if)<<"\n";
+		//std::cout<<"Target Instruction : "<<as_string(ns, *target_if)<<"\n";
 		getchar();
 
 		//BOOL VARIABLES
@@ -717,8 +726,10 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		//If branch in actual code = expr_false here
 		if(check_condition(expr_false, goto_model, ns))
 		{
-			std::cout<<"\n in IF \n\n";
+			//std::cout<<"\n in IF \n\n";
 			getchar();
+			std::cout<<"IF receiving : \n";
+			print_all();
 			if_implemented = true ;
 			copy_map(original_map);
 			
@@ -727,18 +738,23 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		}
 		else
 		{
-			std::cout<<"\n IF not implemented \n\n";
+			//std::cout<<"\n IF not implemented \n\n";
 			getchar();
 			check_if_else_present(it, target_end, target_if, else_present);
 		}
 
-		std::cout<<"Else Present : "<<else_present<<"\n";
+		//std::cout<<"Else Present : "<<else_present<<"\n";
 
 		if(else_present == true && maybe && if_implemented)
 		{
 			it = target_if ;
+			std::cout<<"After IF : \n\n";
+			print_all();
 			copy_map(after_if_map);
 			restore_map(original_map);
+
+			std::cout<<"Input to ELSE : \n\n";
+			print_all();
 			iterate_over_else(it, goto_model, target_end, loops, ns);
 			else_implemented = true ;
 		}
@@ -768,9 +784,10 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
  		else
  			it = target_if ;
 
- 		std::cout<<"Starting from : "<<as_string(ns, *it)<<"\n";
+ 		//std::cout<<"Starting from : "<<as_string(ns, *it)<<"\n";
  		getchar();
  		target_changed = true ;
+ 		print_all() ;
 	}
 	}
 }
@@ -901,7 +918,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 	while(check_condition(simplified, goto_model, ns) && enter_loop && !converged && iter_number<threshold)
 	{
 		bool target_changed = false ;
-		std::cout<<"Entered LOOOOP\n";
+		//std::cout<<"Entered LOOOOP\n";
 		++l_it ;
 
 		std::map<irep_idt, interval*> interval_map_prev_iteration;
@@ -910,7 +927,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 		while(l_it != current_loop.end())
 		{
 
-			std::cout<<"\nComes in here\n" ;
+			//std::cout<<"\nComes in here\n" ;
 			goto_programt::targett target = *(l_it) ;
 			std::cout<<"Instruction : "<<as_string(ns, *target)<<"\n";
 
@@ -918,7 +935,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 			{
 				case goto_program_instruction_typet::DECL :  handle_declaration(*target, goto_model); break;
 
-				case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ;handle_assignments(*target, goto_model); break ;
+				case goto_program_instruction_typet::ASSIGN : handle_assignments(*target, goto_model); break ;
 
 				case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto()) 
 															{
@@ -944,6 +961,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 															}	
 															else if(check_if_loop(all_loops, target))
 															{
+																std::cout<<"\n HANDLE LOOPS In handle_loops\n\n";
 																handle_loops(all_loops.loop_map.find(*l_it)->second, all_loops, goto_model, ns);
 																l_it = current_loop.find(target->get_target());	
 																target_changed = true ;		   
@@ -972,10 +990,14 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 		l_it = current_loop.begin(); 
 		std::cout<<"One Iteration Done\n";
 
-		join_values(interval_map_before_loop);
+		if(iter_number == 1)
+			join_values(interval_map_before_loop);
+		else
+			join_values(interval_map_prev_iteration);
+
 		std::cout<<"\n\n After Join : ";
 		print_all();
-		check_for_convergence(interval_map_before_loop, converged);
+		check_for_convergence(interval_map_prev_iteration, converged);
 		iter_number++ ;
 	}	
 
@@ -1076,6 +1098,8 @@ void abstract_interpreter ::copy_map(std::map<irep_idt, interval*> &copy)
 	std::map<irep_idt, interval*>::iterator it = interval_map.begin();
 	interval* copied_interval;
 
+	std::cout<<"Before COPY : \n";
+	print_all() ;
 	while(it!=interval_map.end())
 	{
 		if(it->second->get_sign() == integer_type::SIGNED)
@@ -1090,7 +1114,7 @@ void abstract_interpreter ::copy_map(std::map<irep_idt, interval*> &copy)
 		if(it->second->is_minus_inf())
 			copied_interval->set_lower_bound(-1, true);
 		else
-			copied_interval->set_lower_bound(it->second->get_upper_bound(), false);
+			copied_interval->set_lower_bound(it->second->get_lower_bound(), false);
 
 		if(it->second->is_plus_inf())
 			copied_interval->set_upper_bound(-1, true);
@@ -1100,7 +1124,22 @@ void abstract_interpreter ::copy_map(std::map<irep_idt, interval*> &copy)
 		copy.insert(std::pair<irep_idt, interval*>(it->first, copied_interval));
 
 		it++ ;
-	}	
+	}
+
+
+	std::cout<<"\n COPIED MAP : \n";
+	std::map<irep_idt, interval*>::iterator it2 ;
+	std::cout<<"---------------- INTERVALS -------------------------\n";
+
+	for(it2 = copy.begin() ; it2!=copy.end() ; it2++)
+	{
+		std::cout<<id2string(it2->first)<<" : ";
+		it2->second->print_interval();
+		std::cout<<"\n";
+	}
+
+	std::cout<<"*************************************************\n\n";
+
 }
 
 void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &current_loop, natural_loops_mutablet &all_loops,
@@ -1108,6 +1147,9 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 {
 	std::map<irep_idt, interval*> interval_map_before;
 	copy_map(interval_map_before);
+
+	std::cout<<"BEFORE WIDENEING : ******************************\n\n";
+	print_all();
 
 	natural_loops_mutablet::natural_loopt::iterator l_it = current_loop.begin() ;
 	l_it++ ;
@@ -1117,7 +1159,7 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 	while(l_it != current_loop.end())
 	{
 
-		std::cout<<"\nComes in here\n" ;
+		//std::cout<<"\nComes in here\n" ;
 		goto_programt::targett target = *(l_it) ;
 		std::cout<<"Instruction : "<<as_string(ns, *target)<<"\n";
 
@@ -1125,11 +1167,11 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 		{
 			case goto_program_instruction_typet::DECL :  handle_declaration(*target, goto_model); break;
 
-			case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ; handle_assignments_widen(*target, goto_model, interval_map_before); break ;
+			case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ; handle_assignments(*target, goto_model); break ;
 
 			case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto()) 
 														{	
-															std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n\n";
+															//std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n\n";
 															handle_goto(*target, goto_model, target, target_changed,all_loops,ns);
 															if(target_changed)
 																l_it = current_loop.find(target);
@@ -1138,7 +1180,7 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 														else if(check_if_loop(all_loops, target))
 														{
 															//handle_loops(all_loops.loop_map.find(*l_it)->second, all_loops, goto_model, ns);
-															std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ********************\n\n";
+															//std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ********************\n\n";
 
 															l_it = current_loop.find(target->get_target());	
 															target_changed = true ;		   
@@ -1146,19 +1188,17 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 														
 														else if(target->is_backwards_goto())
 														{
-															std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE $$$$$$$$$$$$$$$$$$\n\n";
+															//std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE $$$$$$$$$$$$$$$$$$\n\n";
 															target_changed = true ;
 															 l_it = current_loop.end();
 														}
 														else
 														{
-															std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n";
+															//std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n";
 														} break ;	
 
 			default: std::cout<<"Cannot Recognise the instruction\n"; target_changed = false ;
 		}
-
-		print_all();
 
 		if(!target_changed)
 			{
@@ -1166,7 +1206,74 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 			}
 	}	
 
+	join_values(interval_map_before);
 
+	std::cout<<"AFTER ANOTHER RUN  :  ******************\n";
+	print_all();
+
+	std::map<irep_idt, interval*>::iterator it_b = interval_map_before.begin();
+	std::map<irep_idt, interval*>::iterator it_o ;
+
+	while(it_b!=interval_map_before.end())
+	{
+		it_o = interval_map.find(it_b->first);
+
+		if(it_o != interval_map.end())
+		{
+			if(!check_if_equal(it_o->second, it_b->second))
+			{
+				interval* widened ;
+				if(it_o->second->get_sign() == integer_type::SIGNED)
+					widened = new interval(integer_type::SIGNED);
+				else
+					widened = new interval(integer_type::UNSIGNED);
+
+				std::cout<<"\n GOING TO WIDEN : ";
+				it_b->second->print_interval();
+				it_o->second->print_interval(); 
+				std::cout<<"\n\n";
+
+				bool w = widen(it_b->second, it_o->second, widened) ;
+
+				if(w)
+					it_o->second->make_equal(*widened);
+
+			}
+		}
+
+		it_b++;
+	}
+
+	std::cout<<"AFTER WIDENING : *************************\n";
+	print_all();
+}
+
+bool abstract_interpreter :: check_if_equal(interval* first , interval* second)
+{
+	bool lower_same, upper_same ;
+
+	if(first->is_minus_inf() && second->is_minus_inf())
+		lower_same = true ;
+
+	else if(first->get_lower_bound() == second->get_lower_bound() && !(first->is_minus_inf() || second->is_minus_inf()))
+		lower_same = true ;
+	else
+		lower_same = false ;	
+
+
+	if(first->is_plus_inf() && second->is_plus_inf())
+		upper_same = true ;
+
+	else if(first->get_upper_bound() == second->get_upper_bound() && !(first->is_plus_inf() || second->is_plus_inf()))
+		upper_same = true ;
+	else
+		upper_same = false ;	
+
+
+	if(lower_same && upper_same)
+		return true ;
+	else
+		return false ;
 }
 
 void abstract_interpreter :: handle_assignments_widen(goto_programt::instructiont &instruction, goto_modelt &goto_model, std::map<irep_idt, interval*> &interval_map_prev)
@@ -1183,12 +1290,12 @@ void abstract_interpreter :: handle_assignments_widen(goto_programt::instruction
 		exprt expression = assign.rhs();
 		namespacet ns(goto_model.symbol_table);
 
-		std::cout<<"RHS Expression  : "<<expr2c(expression, ns)<<"\n"; 
+		//std::cout<<"RHS Expression  : "<<expr2c(expression, ns)<<"\n"; 
 		exprt simplified = simplify_expr(expression, ns);
 
 		//CHECK FOR CONSTANT PROPAGATION?? //MAYBE NOT //CONFIRM ONCE
 
-		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
+		//std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		interval temp = handle_rhs(expression, goto_model);
 		
 		interval temp_widened(integer_type::SIGNED);
@@ -1229,7 +1336,7 @@ bool abstract_interpreter :: check_assert(exprt &expr, goto_modelt &goto_model, 
 	if(expr.id() == ID_equal || expr.id() == ID_notequal || expr.id() == ID_lt || expr.id() == ID_le || expr.id() == ID_gt || expr.id() == ID_ge)
 	{
 		maybe = false ;
-		std::cout<<"COmes in EQUAL\n\n";
+		//std::cout<<"COmes in EQUAL\n\n";
 
 		if(!is_not)
 		{
@@ -1241,7 +1348,7 @@ bool abstract_interpreter :: check_assert(exprt &expr, goto_modelt &goto_model, 
 		}
 		else
 		{
-			std::cout<<"Is not false\n";
+			//std::cout<<"Is not false\n";
 			if(!check_condition(expr, goto_model, ns) && !maybe) 
 				return true;
 			else

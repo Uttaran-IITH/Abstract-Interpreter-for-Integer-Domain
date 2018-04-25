@@ -113,8 +113,8 @@ bool divide(interval a,interval b,interval *c){
 		c->set_upper_bound(m,a.is_plus_inf());
 	}
 	else{
-		c->set_lower_bound(n,true);
-		c->set_upper_bound(m,true);
+		c->set_lower_bound(n,false);
+		c->set_upper_bound(m,false);
 	}
 }
 	return true;
@@ -172,7 +172,7 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 
 	std::cout<<"\n\n PRINTING RESULT : ";
 	std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
- 	if ( (!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
+ 	if ( (!a->is_plus_inf()) && (u1 <= l2) && (!b->is_minus_inf()) ) {
 		temp_a = a;
 		temp_b = b;
  		return true;
@@ -210,7 +210,7 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
  		std::cout << "Invalid Branch \n";
 		 return false;
  	}
- 	else if ((!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf())) {
+ 	else if ((!b->is_plus_inf()) && (u2 <= l1) && (!a->is_minus_inf())) {
  		temp_a = a;
 		temp_b = b;
 		return true;
