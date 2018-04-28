@@ -41,6 +41,8 @@ int main(int argc, const char **argv)
 		namespacet ns(goto_model.symbol_table);
 			
 		abstract_interpreter interpreter ;
+
+		goto_model.goto_functions.output(ns, std::cout);
 		interpreter.run_interpreter(goto_model);	
 }
 

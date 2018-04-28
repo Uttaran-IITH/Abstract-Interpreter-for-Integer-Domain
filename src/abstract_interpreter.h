@@ -21,7 +21,7 @@ class abstract_interpreter
 		void set_rhs(exprt &rhs_expr, interval* &rhs , goto_modelt &goto_model);
 		void set_lhs(symbol_exprt &lhs_sym, interval* &lhs, goto_modelt &goto_model);
 		bool check_if_loop(natural_loops_mutablet &loops, goto_programt::targett &target);
-		bool check_condition(exprt &expr, goto_modelt &goto_model, namespacet &ns);
+		bool check_condition(exprt &expr, goto_modelt &goto_model, namespacet &ns, bool update);
 		void join_values(std::map<irep_idt, interval*> &interval_map_before_loop);
 		void check_for_convergence(std::map<irep_idt, interval*> &interval_map_prev_iteration, bool &converged);
 		void copy_map(std::map<irep_idt, interval*> &copy);
