@@ -173,8 +173,10 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
 	std::cout<<"\n\n PRINTING RESULT : ";
 	std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
  	if ( (!a->is_plus_inf()) && (u1 <= l2) && (!b->is_minus_inf()) ) {
-		temp_a = a;
-		temp_b = b;
+		temp_a->make_equal(*a);
+		temp_b->make_equal(*b);
+
+		//temp_b->print_interval();
  		return true;
  	}
  	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
@@ -183,7 +185,7 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
  	}
  	else {
 		temp_a->set_lower_bound(l1,a->is_minus_inf());
-		temp_b->set_upper_bound(min(u1, u2),a->is_plus_inf() && b->is_plus_inf());
+		temp_a->set_upper_bound(min(u1, u2),a->is_plus_inf() && b->is_plus_inf());
  	}
 	if(l == 0)
 	{	
@@ -211,19 +213,24 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
 		 return false;
  	}
  	else if ((!b->is_plus_inf()) && (u2 <= l1) && (!a->is_minus_inf())) {
- 		temp_a = a;
-		temp_b = b;
+ 		std::cout<<"Entering HERE \n\n";
+ 		temp_a->make_equal(*a);
+		temp_b->make_equal(*b);
+
 		return true;
  	}
  	else {
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
  		temp_a->set_upper_bound(u1,a->is_plus_inf());
+ 		std::cout<<"After this : \n";
+ 		temp_a->print_interval();
  	}
  	
 	if(l == 0)
 		if(less_than(b,a,temp_b,temp_a,1)){}
 
 
+	std::cout<<"\n\nGreater than result : ";		
 	temp_a->print_interval();
 	temp_b->print_interval();	 
 	 maybe = true;

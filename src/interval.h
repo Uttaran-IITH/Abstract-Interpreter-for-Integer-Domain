@@ -24,7 +24,6 @@ class interval
 	integer_type get_sign();
 	bool is_plus_inf();
 	bool is_minus_inf();
-
 	void print_interval();	
 	void make_equal(interval temp_interval);
 };

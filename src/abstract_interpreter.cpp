@@ -37,7 +37,7 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 		{	
 			loops(f_it->second.body);
 
-			std::cout<<"Function : "<<f_it->first<<"\n\n";
+			//std::cout<<"Function : "<<f_it->first<<"\n\n";
 
 	  	for(goto_programt::instructionst::iterator \
 	      	it=(f_it->second).body.instructions.begin(); \
@@ -70,7 +70,7 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 															}
 															else
 															{
-																std::cout<<"\n\n LOOP FOUND \n\n";
+																//std::cout<<"\n\n LOOP FOUND \n\n";
 																handle_loops(loops.loop_map.find(it)->second, loops, goto_model, ns);
 																it = instruction.get_target();
 																target_changed = true ;   
@@ -134,7 +134,7 @@ void abstract_interpreter :: handle_declaration(goto_programt::instructiont &ins
 
 		if(it !=interval_map.end())
 		{
-			std::cout<<"Double Declaration O.O";
+			//std::cout<<"Double Declaration O.O";
 		}
 
 		else
@@ -151,7 +151,7 @@ void abstract_interpreter :: handle_declaration(goto_programt::instructiont &ins
 
 		if(it != interval_map.end())
 		{
-			std::cout<<"Double Declaration O.O";
+			//std::cout<<"Double Declaration O.O";
 		}
 
 		else
@@ -196,16 +196,17 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 		mp_integer value;
 		to_integer(constant_expr, value);
 		
-		std::cout<<"Constant Found : "<<value<<"\n\n";
+		//std::cout<<"Constant Found : "<<value<<"\n\n";
 		interval* constant = new interval(integer_type::SIGNED);
 
 		// std::cout<<" LOWER  : "<<integer2string(binary2integer(id2string(constant_expr.get_value()), false))<<"\n";
 
 		constant->set_lower_bound(value, false);
 		constant->set_upper_bound(value, false);
-		std::cout<<"Constant Interval : " ;
-		constant->print_interval();
-		std::cout<<"\n";
+
+		//std::cout<<"Constant Interval : " ;
+		//constant->print_interval();
+		//std::cout<<"\n";
 
 		if(neg)
 		{	
@@ -219,7 +220,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 	{
 		if(expression.id() == ID_plus)
 		{
-			std::cout<<"Plus Expression : ";
+			//std::cout<<"Plus Expression : ";
 			plus_exprt plus_expr = to_plus_expr(expression);
 			interval arg1 = handle_rhs(plus_expr.op0() , goto_model);
 			interval arg2 = handle_rhs(plus_expr.op1(), goto_model);
@@ -235,9 +236,9 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 			add(arg1, arg2, &add_result);
 
-			std::cout<<"After Adding : ";
-			add_result.print_interval() ;
-			std::cout<<"\n";
+			//std::cout<<"After Adding : ";
+			//add_result.print_interval() ;
+			//std::cout<<"\n";
 
 			if(neg)
 			{	
@@ -249,7 +250,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 		//FOR SUBTRACT CASE : Check on how to assign signed and unsigned
 		else if(expression.id() == ID_minus)
 		{
-			std::cout<<"Subtract Expression : ";
+			//std::cout<<"Subtract Expression : ";
 			minus_exprt sub_expr =  to_minus_expr(expression);
 
 			interval arg1 = handle_rhs(sub_expr.op0() , goto_model);
@@ -266,9 +267,9 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 			sub(arg1, arg2, &sub_result);
 
-			std::cout<<"After Subtraction : ";
-			sub_result.print_interval() ;
-			std::cout<<"\n";
+			//std::cout<<"After Subtraction : ";
+			//sub_result.print_interval() ;
+			//std::cout<<"\n";
 
 			if(neg)
 			{	
@@ -281,7 +282,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 		else if(expression.id() == ID_mult)
 		{
-			std::cout<<"Multiply Expression : ";
+			//std::cout<<"Multiply Expression : ";
 			mult_exprt mult_expr =  to_mult_expr(expression);
 
 			interval arg1 = handle_rhs(mult_expr.op0() , goto_model);
@@ -298,9 +299,9 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 			multiply(arg1, arg2, &mult_result);
 
-			std::cout<<"After Multiply : ";
-			mult_result.print_interval() ;
-			std::cout<<"\n";
+			//std::cout<<"After Multiply : ";
+			//mult_result.print_interval() ;
+			//std::cout<<"\n";
 
 			if(neg)
 			{	
@@ -311,7 +312,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 		else if(expression.id() == ID_div)
 		{
-			std::cout<<"Divide Expression : ";
+			//std::cout<<"Divide Expression : ";
 			div_exprt div_expr = to_div_expr(expression);
 
 			interval arg1 = handle_rhs(div_expr.op0(), goto_model);
@@ -329,9 +330,9 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 			divide(arg1, arg2, &div_result);
 
-			std::cout<<"After Divide : ";
-			div_result.print_interval() ;
-			std::cout<<"\n";
+			//std::cout<<"After Divide : ";
+			//div_result.print_interval() ;
+			//std::cout<<"\n";
 
 			if(neg)
 			{	
@@ -365,12 +366,12 @@ void abstract_interpreter :: handle_assignments(goto_programt::instructiont &ins
 		exprt expression = assign.rhs();
 		namespacet ns(goto_model.symbol_table);
 
-		std::cout<<"RHS Expression  : "<<expr2c(expression, ns)<<"\n"; 
+		//std::cout<<"RHS Expression  : "<<expr2c(expression, ns)<<"\n"; 
 		exprt simplified = simplify_expr(expression, ns);
 
 		//CHECK FOR CONSTANT PROPAGATION?? //MAYBE NOT //CONFIRM ONCE
 
-		std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
+		//std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		interval temp = handle_rhs(expression, goto_model);
 
 
@@ -387,8 +388,8 @@ void create_complementary_expr(exprt &expr, exprt &comp_expr, goto_modelt &goto_
 	expr_not.make_not();
 	namespacet ns(goto_model.symbol_table);
 	comp_expr = simplify_expr(expr_not, ns);
-	std::cout<<"Before not simplification : "<<expr2c(expr_not,ns)<<"\n\n";
-	std::cout<<"After not simplification : "<<expr2c(comp_expr,ns)<<"\n\n";
+	//std::cout<<"Before not simplification : "<<expr2c(expr_not,ns)<<"\n\n";
+	//std::cout<<"After not simplification : "<<expr2c(comp_expr,ns)<<"\n\n";
 }
 
 void abstract_interpreter :: set_lhs(symbol_exprt &lhs_sym, interval* &lhs, goto_modelt &goto_model)
@@ -401,9 +402,9 @@ void abstract_interpreter :: set_lhs(symbol_exprt &lhs_sym, interval* &lhs, goto
 	if(it!=interval_map.end())
 	{
 		lhs = it->second ;
-		std::cout<<"LHS Set : ";
-		lhs->print_interval();
-		std::cout<<"\n";
+		// std::cout<<"LHS Set : ";
+		// lhs->print_interval();
+		// std::cout<<"\n";
 	}
 }
 
@@ -423,8 +424,8 @@ void abstract_interpreter :: set_rhs(exprt &rhs_expr, interval* &rhs , goto_mode
 		rhs->set_lower_bound(value, false);
 		rhs->set_upper_bound(value, false);
 
-		std::cout<<"RHS Set : ";
-		rhs->print_interval();
+		// std::cout<<"RHS Set : ";
+		// rhs->print_interval();
 	}
 
 	else
@@ -440,9 +441,9 @@ void abstract_interpreter :: set_rhs(exprt &rhs_expr, interval* &rhs , goto_mode
 		if(it!=interval_map.end())
 		{
 			rhs = it->second ;
-			std::cout<<"RHS Set : ";
-			rhs->print_interval();
-			std::cout<<"\n";
+			// std::cout<<"RHS Set : ";
+			// rhs->print_interval();
+			// std::cout<<"\n";
 		}
 	}	
 
@@ -531,7 +532,7 @@ void abstract_interpreter :: iterate_over_if(goto_programt::targett &it, goto_mo
 														}
 														else //if(check_if_loop(loops, it))
 														{
-															std::cout<<"\n HANDLE LOOPS FOUND in iterate_over_if \n";
+															//std::cout<<"\n HANDLE LOOPS FOUND in iterate_over_if \n";
 															handle_loops(loops.loop_map.find(it)->second, loops, goto_model, ns);
 															it = instruction.get_target();
 															target_changed = true ;   
@@ -548,6 +549,7 @@ void abstract_interpreter :: iterate_over_if(goto_programt::targett &it, goto_mo
 				//std::cout<<"Incremented it\n\n";
 			}
 
+		print_all();
 		getchar();
 	}
 
@@ -585,13 +587,13 @@ void abstract_interpreter :: check_if_else_present(goto_programt::targett &it, g
 				goto_programt::targett t = it->get_target();
 				//goto_programt::targett new_it = it ;
 
-				std::cout<<"\n COMES BEFORE THE RECURSIVE CALL \n";
+				//std::cout<<"\n COMES BEFORE THE RECURSIVE CALL \n";
 				it++ ;
 				check_if_else_present(it, target_end, t, temp);
 
 				if(temp)	
 				{
-					std::cout<<"FOUND  a NEESTED IF ELSE \n";
+					//std::cout<<"FOUND  a NEESTED IF ELSE \n";
 				 	nested_goto_found ++ ;
 				}
 			}
@@ -652,7 +654,7 @@ void abstract_interpreter :: iterate_over_else(goto_programt::targett &it, goto_
 														}
 														else
 														{
-															std::cout<<"\n\n LOOP FOUND HERE  in iterate over else\n\n";
+															//std::cout<<"\n\n LOOP FOUND HERE  in iterate over else\n\n";
 															handle_loops(loops.loop_map.find(it)->second, loops, goto_model, ns);
 															it = (*it).get_target();
 															target_changed = true ;   
@@ -665,6 +667,9 @@ void abstract_interpreter :: iterate_over_else(goto_programt::targett &it, goto_
 
 		if(!target_changed)
 			it++ ;
+
+		print_all();
+		getchar() ;
 	}		
 }
 
@@ -704,8 +709,8 @@ void abstract_interpreter ::restore_map(std::map<irep_idt, interval*> &copy)
 		it++ ;
 	}
 
-	std::cout<<"\nRestored MAP : \n";
-	print_all();	
+	// std::cout<<"\nRestored MAP : \n";
+	// print_all();	
 }
 
 void abstract_interpreter :: handle_goto(goto_programt::instructiont &instruction, goto_modelt &goto_model,
@@ -760,15 +765,17 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		//Map after the if block
 		std::map<irep_idt, interval*> after_if_map;
 
+		copy_map(original_map);
+		
 		//If branch in actual code = expr_false here
 		if(check_condition(expr_false, goto_model, ns, true))
 		{
 			//std::cout<<"\n in IF \n\n";
 			//getchar();
-			std::cout<<"IF receiving : \n";
+			std::cout<<"INSIDE IF : \n";
 			print_all();
 			if_implemented = true ;
-			copy_map(original_map);
+
 			
 			iterate_over_if(++it, goto_model, target_if, target_end, else_present, loops, ns) ;
 
@@ -778,7 +785,7 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 			//std::cout<<"\n IF not implemented \n\n";
 			//getchar();
 
-			std::cout<<"CHECKS WHETHER ELSE PRESENT OR NOT \n";
+			//std::cout<<"CHECKS WHETHER ELSE PRESENT OR NOT \n";
 			check_if_else_present(it, target_end, target_if, else_present);
 		}
 
@@ -786,13 +793,16 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 
 		if(else_present == true && maybe && if_implemented)
 		{
+			//std::cout<<"COMING IN HERE ???????????\n\n";
+			//getchar();
+
 			it = target_if ;
-			std::cout<<"After IF : \n\n";
+			//std::cout<<"After IF : \n\n";
 			print_all();
 			copy_map(after_if_map);
 			restore_map(original_map);
 
-			std::cout<<"Input to ELSE : \n\n";
+			std::cout<<"INSIDE ELSE : \n\n";
 			print_all();
 			iterate_over_else(it, goto_model, target_end, loops, ns);
 			else_implemented = true ;
@@ -800,6 +810,8 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 
 		else if(else_present == true && !if_implemented)
 		{
+			//std::cout<<"COMING IN ELSE BUT NO IF ^^^^^^^^^^^^^ \n\n";
+			//getchar();
 			it = target_if ;
 			iterate_over_else(it, goto_model, target_end, loops, ns);
 			else_implemented = true ;
@@ -824,8 +836,9 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
  			it = target_if ;
 
  		//std::cout<<"Starting from : "<<as_string(ns, *it)<<"\n";
- 		getchar();
+ 		//getchar();
  		target_changed = true ;
+ 		std::cout<<"AFTER IF..ELSE BLOCK : \n\n";
  		print_all() ;
 	}
 	}
@@ -835,10 +848,66 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 {
 	bool can_enter_loop = false ;
 
+	//std::cout<<"Condition Expression : "<<expr2c(expr, ns)<<"\n\n";
+
 	if(expr.has_operands())
 	{		
+		//std::cout<<"Expresiion has operands \n\n";
+
+		if(expr.id() == ID_and)
+		{
+			//std::cout<<"Comes inside AND Atleast\n\n";
+			getchar();
+			
+			bool lhs = false ;
+			bool rhs = false ;
+			bool something_changed = false ;
+
+			std::map<irep_idt, interval*> interval_map_before;
+			copy_map(interval_map_before);
+			
+			lhs = check_condition(expr.op0(), goto_model, ns , update);
+			//std::cout<<"LHS CALCULATED  : "<<lhs<<"\n";
+
+			if(lhs)
+			{
+				something_changed = true ;
+				//std::cout<<"Called FOR RHS\n\n";
+				rhs = check_condition(expr.op1(), goto_model, ns , update);
+			}
+
+			can_enter_loop = lhs && rhs ;
+
+			if(!can_enter_loop && something_changed && update)
+			{
+				restore_map(interval_map_before);
+			}
+
+			return can_enter_loop ;
+		}
+
+		if(expr.id() == ID_or)
+		{
+			bool lhs = false ;
+			bool rhs = false ;
+
+			lhs = check_condition(expr.op0(), goto_model,ns,update);
+			
+			if(!lhs)
+			{
+				//std::cout<<"When LHS FALSE SHOULD COME HERE\n";
+				rhs = check_condition(expr.op1(), goto_model,ns, update);
+			}
+
+			can_enter_loop = lhs || rhs ;
+
+			return can_enter_loop ;
+		}
+
 		if(can_cast_expr<binary_relation_exprt>(expr))
 		{
+			//std::cout<<"COmING IN HERE \n";
+
 			binary_relation_exprt binary_relation_expr = to_binary_relation_expr(expr);
 
 			symbol_exprt lhs_sym = to_symbol_expr(binary_relation_expr.lhs());
@@ -848,14 +917,14 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 			interval* lhs ;
 
 			//Set LHS
-			std::cout<<"Before\n";
+			//std::cout<<"Before\n";
 			set_lhs(lhs_sym, lhs, goto_model);
 	
 			//Set RHS
-			std::cout<<"Here\n\n";
-			std::cout<<"RHS Expression : "<<expr2c(rhs_expr, ns)<<"\n\n";
+			//std::cout<<"Here\n\n";
+			//std::cout<<"RHS Expression : "<<expr2c(rhs_expr, ns)<<"\n\n";
 			set_rhs(rhs_expr, rhs, goto_model);
-			std::cout<<"After\n";
+			//std::cout<<"After\n";
 
 			if(binary_relation_expr.id() == ID_equal)
 			{
@@ -885,7 +954,7 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 
 			else if(binary_relation_expr.id() == ID_ge || binary_relation_expr.id() == ID_gt)
 			{
-				std::cout<<"Comes into greater_than \n ";
+				//std::cout<<"Comes into greater_than \n ";
 				interval* temp_a;
 				interval* temp_b;
 				temp_a = new interval(integer_type::SIGNED);
@@ -895,7 +964,10 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 
 				if(can_enter_loop && update)
 				{
+					//std::cout<<"UPDATED GREATER THAN : ";
+					temp_a->print_interval();
 					lhs->make_equal(*temp_a);
+
 					rhs->make_equal(*temp_b);					
 				}
 
@@ -907,7 +979,7 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 
 			else if(binary_relation_expr.id() == ID_le || binary_relation_expr.id() == ID_lt)
 			{
-				std::cout<<"Comes into less than\n";
+				//std::cout<<"Comes into less than\n";
 				interval* temp_a;
 				interval* temp_b;
 				temp_a = new interval(integer_type::SIGNED);
@@ -927,13 +999,7 @@ bool abstract_interpreter :: check_condition(exprt &expr, goto_modelt &goto_mode
 			else
 				std::cout<<"Unidentified Binary Relation Operator\n\n";
 		}
-		
-		// else if(expr.id() == ID_and)
-		// {
-
-		// }	
-
-		// else 
+				// else 
 
 }
 
@@ -972,7 +1038,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 	std::map<irep_idt, interval*> interval_map_before_loop;
 	copy_map(interval_map_before_loop);
 
-	std::cout<<"Before Entering the Loop\n\n";
+	//std::cout<<"Before Entering the Loop\n\n";
 
 	print_all();
 
@@ -999,14 +1065,22 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 			{
 				case goto_program_instruction_typet::DECL :  handle_declaration(*target, goto_model); break;
 
-				case goto_program_instruction_typet::ASSIGN : handle_assignments(*target, goto_model); break ;
+				case goto_program_instruction_typet::ASSIGN : handle_assignments(*target, goto_model); target_changed = false ; break ;
 
 				case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto() && status == NO_ASSERTION) 
 															{
+																
+																//std::cout<<"Before calling handle goto \n\n";
+																//getchar();
 																handle_goto(*target, goto_model, target, target_changed, all_loops, ns);
 
-																if(target_changed)
-																	l_it = current_loop.find(target); 
+																// std::cout<<"Handle GOTO Returns \n\n";
+																// getchar();
+
+																// if(target_changed)
+																target_changed = true ;
+
+																l_it = current_loop.find(target); 
 															}
 
 															else if(!check_if_loop(all_loops, target) && status != NO_ASSERTION)
@@ -1025,7 +1099,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 															}	
 															else if(check_if_loop(all_loops, target))
 															{
-																std::cout<<"\n HANDLE LOOPS In handle_loops\n\n";
+																//std::cout<<"\n HANDLE LOOPS In handle_loops\n\n";
 																handle_loops(all_loops.loop_map.find(*l_it)->second, all_loops, goto_model, ns);
 																l_it = current_loop.find(target->get_target());	
 																target_changed = true ;		   
@@ -1038,10 +1112,12 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 															}break ;	
 
 				case goto_program_instruction_typet::ASSERT : handle_assertions(*target, goto_model, ns); target_changed = false; break;
+				
 				default: std::cout<<"Cannot Recognise the instruction\n"; target_changed = false ;
 			}
 
 			print_all();
+			getchar();
 
 			if(!target_changed)
 				{
@@ -1052,14 +1128,14 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 		}
 
 		l_it = current_loop.begin(); 
-		std::cout<<"One Iteration Done\n";
+		//std::cout<<"One Iteration Done\n";
 
 //		if(iter_number == 1)
 			join_values(interval_map_before_loop);
 		// else
 		// 	join_values(interval_map_prev_iteration);
 
-		std::cout<<"\n\n After Join : ";
+		std::cout<<"\n\n ITERATION COMPLETE \n\n";
 		print_all();
 		check_for_convergence(interval_map_prev_iteration, converged);
 		iter_number++ ;
@@ -1067,6 +1143,7 @@ void abstract_interpreter :: handle_loops (natural_loops_mutablet::natural_loopt
 
 	if(iter_number>=threshold && !converged && check_condition(simplified, goto_model, ns, false))
 	{
+		std::cout<<"--------------> WIDENING \n\n";
 		widening(current_loop, all_loops,goto_model, ns); 
 		//For inner loops, if encountered, simply ignore as they would have already been widened.
 	}
@@ -1083,13 +1160,13 @@ void abstract_interpreter :: join_values(std::map<irep_idt, interval*> &interval
 
 		if(it_init!=interval_map_before_loop.end())
 		{
-			std::cout<<"Before Join : ";
-			it->second->print_interval();
-			it_init->second->print_interval();
+			//std::cout<<"Before Join : ";
+			//it->second->print_interval();
+			//it_init->second->print_interval();
 			join(it->second, it_init->second);
 
-			std::cout<<"After join : ";
-			it->second->print_interval();
+			//std::cout<<"After join : ";
+			//it->second->print_interval();
 
 		}
 		else
@@ -1162,8 +1239,8 @@ void abstract_interpreter ::copy_map(std::map<irep_idt, interval*> &copy)
 	std::map<irep_idt, interval*>::iterator it = interval_map.begin();
 	interval* copied_interval;
 
-	std::cout<<"Before COPY : \n";
-	print_all() ;
+	// std::cout<<"Before COPY : \n";
+	// print_all() ;
 	while(it!=interval_map.end())
 	{
 		if(it->second->get_sign() == integer_type::SIGNED)
@@ -1191,18 +1268,18 @@ void abstract_interpreter ::copy_map(std::map<irep_idt, interval*> &copy)
 	}
 
 
-	std::cout<<"\n COPIED MAP : \n";
-	std::map<irep_idt, interval*>::iterator it2 ;
-	std::cout<<"---------------- INTERVALS -------------------------\n";
+	//std::cout<<"\n COPIED MAP : \n";
+	//std::map<irep_idt, interval*>::iterator it2 ;
+	// std::cout<<"---------------- INTERVALS -------------------------\n";
 
-	for(it2 = copy.begin() ; it2!=copy.end() ; it2++)
-	{
-		std::cout<<id2string(it2->first)<<" : ";
-		it2->second->print_interval();
-		std::cout<<"\n";
-	}
+	// for(it2 = copy.begin() ; it2!=copy.end() ; it2++)
+	// {
+	// 	std::cout<<id2string(it2->first)<<" : ";
+	// 	it2->second->print_interval();
+	// 	std::cout<<"\n";
+	// }
 
-	std::cout<<"*************************************************\n\n";
+	// std::cout<<"*************************************************\n\n";
 
 }
 
@@ -1212,7 +1289,7 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 	std::map<irep_idt, interval*> interval_map_before;
 	copy_map(interval_map_before);
 
-	std::cout<<"BEFORE WIDENEING : ******************************\n\n";
+	//std::cout<<"BEFORE WIDENEING : ******************************\n\n";
 	print_all();
 
 	natural_loops_mutablet::natural_loopt::iterator l_it = current_loop.begin() ;
@@ -1231,14 +1308,17 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 		{
 			case goto_program_instruction_typet::DECL :  handle_declaration(*target, goto_model); break;
 
-			case goto_program_instruction_typet::ASSIGN : std::cout<<"Assignment\n\n" ; handle_assignments(*target, goto_model); break ;
+			case goto_program_instruction_typet::ASSIGN :handle_assignments(*target, goto_model); target_changed = false ; break ;
 
 			case goto_program_instruction_typet::GOTO : if(!check_if_loop(all_loops, target) && !target->is_backwards_goto()) 
 														{	
 															//std::cout<<"IN HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n\n";
+															//getchar() ;
 															handle_goto(*target, goto_model, target, target_changed,all_loops,ns);
-															if(target_changed)
-																l_it = current_loop.find(target);
+															// getchar();
+															// print_all();
+															target_changed = true ;
+															l_it = current_loop.find(target);
 														}
 
 														else if(check_if_loop(all_loops, target))
@@ -1264,6 +1344,9 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 			default: std::cout<<"Cannot Recognise the instruction\n"; target_changed = false ;
 		}
 
+		print_all();
+		getchar();
+
 		if(!target_changed)
 			{
 				l_it++;			//std::cout<<"Instruction : "<<as_string(ns, **l_it)<<"\n";
@@ -1272,8 +1355,8 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 
 	join_values(interval_map_before);
 
-	std::cout<<"AFTER ANOTHER RUN  :  ******************\n";
-	print_all();
+	// std::cout<<"-----------> After WIDENING \n";
+	// print_all();
 
 	std::map<irep_idt, interval*>::iterator it_b = interval_map_before.begin();
 	std::map<irep_idt, interval*>::iterator it_o ;
@@ -1292,10 +1375,10 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 				else
 					widened = new interval(integer_type::UNSIGNED);
 
-				std::cout<<"\n GOING TO WIDEN : ";
-				it_b->second->print_interval();
-				it_o->second->print_interval(); 
-				std::cout<<"\n\n";
+				// std::cout<<"\n GOING TO WIDEN : ";
+				// it_b->second->print_interval();
+				// it_o->second->print_interval(); 
+				// std::cout<<"\n\n";
 
 				bool w = widen(it_b->second, it_o->second, widened) ;
 
@@ -1308,7 +1391,7 @@ void abstract_interpreter :: widening (natural_loops_mutablet::natural_loopt &cu
 		it_b++;
 	}
 
-	std::cout<<"AFTER WIDENING : *************************\n";
+	std::cout<<"-------------> AFTER WIDENING \n\n";
 	print_all();
 }
 
@@ -1368,19 +1451,19 @@ void abstract_interpreter :: handle_assignments_widen(goto_programt::instruction
 
 		bool widened = widen(it->second, &temp , &temp_widened);
 
-			std::cout<<"Sent for Widenening : ";
-			it->second->print_interval();
+			// std::cout<<"Sent for Widenening : ";
+			// it->second->print_interval();
 			//it_p->second->print_interval();
-			temp.print_interval();
-			temp_widened.print_interval();
-			std::cout<<"\n\n";
+			// temp.print_interval();
+			// temp_widened.print_interval();
+			// std::cout<<"\n\n";
 			
 		if(widened)
 			it->second->make_equal(temp_widened);
 
-		std::cout<<"Widened : ";
-		it->second->print_interval();
-		std::cout<<"\n&&&&&&&&&&&&&&\n";
+		// std::cout<<"Widened : ";
+		// it->second->print_interval();
+		// std::cout<<"\n&&&&&&&&&&&&&&\n";
 
 
 	}
@@ -1428,6 +1511,7 @@ bool abstract_interpreter :: check_assert(exprt &expr, goto_modelt &goto_model, 
 			bool extra1 = true ;
 			bool extra2 = true ;
 
+			//std::cout<<"NUMBER OF OPERANDS : "<<expr.operands().size()<<"\n";
 			if(expr.operands().size() >= 3)
 				extra1 = check_assert(expr.op2(), goto_model, ns);
 
