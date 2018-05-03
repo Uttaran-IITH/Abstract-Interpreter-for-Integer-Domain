@@ -3,7 +3,10 @@
 #include <stdlib.h>
 #include <iostream>
 
-//Returns MAX of 2 integers
+/*Returns Minimum of 2 mp_integers
+ * Input -> Two mp_integers
+ * Output -> One mp_integer
+ */
 mp_integer min(mp_integer a, mp_integer b) 
 {
 	if (a < b)
@@ -12,7 +15,10 @@ mp_integer min(mp_integer a, mp_integer b)
 		return b;
 }
 
-//Returns MIN of 2 integers
+/*Returns Maximum of 2 mp_integers
+ * Input -> Two mp_integers
+ * Output -> One mp_integer
+ */
 mp_integer max(mp_integer a, mp_integer b)
 {
 	if (a>b)
@@ -21,15 +27,18 @@ mp_integer max(mp_integer a, mp_integer b)
 		return b;
 }
 
-//Adds two intervals and stores it in the 3rd argument
+/* Adds two intervals (a and b) and stores it in the 3rd argument (c)
+ * Input -> Three intervals.
+ * Output -> One interval
+ */
 void add(interval a, interval b, interval *c)
 {
 	bool plus_inf = false;
 	bool minus_inf =  false;
-
+	//Stores positive infinity flag
 	if(a.is_plus_inf() || b.is_plus_inf())
 		plus_inf = true ;
-
+	//Stores negative infinity flag
 	if(a.is_minus_inf() || b.is_minus_inf())
 		minus_inf =  true ;
 
@@ -38,7 +47,10 @@ void add(interval a, interval b, interval *c)
 	c->set_upper_bound(a.get_upper_bound() + b.get_upper_bound(), plus_inf);
 }
 
-//Negates the interval (flips it)
+/* Negates the interval (flips it)
+ * Input -> One intervals.
+ * Output -> One interval
+ */
 void negate(interval *a)
 {
 	//Store the upper bound values and flags
@@ -53,14 +65,21 @@ void negate(interval *a)
 }
 
 
-//Computes the difference between two intervals which is same as adding the negation
+
+/*Computes the difference between two intervals which is same as adding the negation of the 2nd interval to 1st
+ * Input -> Three intervals
+ * Output -> One Interval
+*/
 void sub(interval a, interval b, interval *c)
 {
 	negate(&b);
 	add(a, b, c);
 }
 
-//Multiplies two intervals and stores it in the 3rd argument
+/* Multiplies two intervals and stores it in the 3rd argument
+ * Input -> Three intervals
+ * Output -> One Interval
+*/
 void multiply(interval a, interval b, interval *c)
 {
  	mp_integer temp[] = {
@@ -90,6 +109,10 @@ void multiply(interval a, interval b, interval *c)
 	c->set_upper_bound(m, pos_inf);
 	c->set_lower_bound(n, neg_inf);
 }
+/* Divides two intervals and stores it in the 3rd interval
+ * Input -> Three intervals
+ * Output -> One Interval
+*/
 bool divide(interval a,interval b,interval *c){
 	if((b.get_lower_bound()==0 && !b.is_minus_inf()) || (b.get_upper_bound()==0 && !b.is_plus_inf())){
 		std::cout<<"Cannot divide by 0\n";
@@ -113,34 +136,45 @@ bool divide(interval a,interval b,interval *c){
 		c->set_upper_bound(m,a.is_plus_inf());
 	}
 	else{
-		c->set_lower_bound(n,true);
-		c->set_upper_bound(m,true);
+		c->set_lower_bound(n,false);
+		c->set_upper_bound(m,false);
 	}
 }
 	return true;
 }
-void power(interval *a, unsigned int p) {
-	mp_integer n = pow(a->get_lower_bound(),p);
-	mp_integer m = pow(a->get_upper_bound(),p);
-	if (p%2 == 0 && n < 0)
-		n = -n;
-	a->set_lower_bound(n,a->is_minus_inf());
-	a->set_upper_bound(m,a->is_plus_inf());
-}
-//Computes the meet of the interval
+//void power(interval *a, unsigned int p) {
+	//mp_integer n = pow(a->get_lower_bound(),p);
+	//mp_integer m = pow(a->get_upper_bound(),p);
+	//if (p%2 == 0 && n < 0)
+		//n = -n;
+	//a->set_lower_bound(n,a->is_minus_inf());
+	//a->set_upper_bound(m,a->is_plus_inf());
+//}
+
+
+/*Computes the meet of the interval
+ * Input -> Three intervals
+ * Output -> One Interval
+*/
 bool meet(interval *a, interval *b, interval* &c) {
 	mp_integer l1 = a->get_lower_bound();
 	mp_integer u1 = a->get_upper_bound();
 	mp_integer l2 = b->get_lower_bound();
 	mp_integer u2 = b->get_upper_bound();
+	
+	//The intervals don't overlap so return false
 	if ((u1 < l2 && !b->is_minus_inf()) || (u2 < l1 && !a->is_minus_inf())) {
 		std::cout << "Invalid";
 		return false ;
 	}
+	
+	//One interval is subset of the another so return the subset interval
 	if((u1 == u2) && (a->is_plus_inf() == b->is_plus_inf()) && (l1 == l2) && (a->is_minus_inf() == b->is_minus_inf())){
 		c = a;
 		return true;
 	}
+	
+	//Else compute the meet
 	else 
 	{
 		c->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
@@ -149,50 +183,72 @@ bool meet(interval *a, interval *b, interval* &c) {
 		return true ;
 	}
 }
-
+/*Checks if two intervals are equal
+ * Input -> Three intervals
+ * Output -> One Interval
+*/
 bool equals(interval *a, interval *b, interval* &c) {
 	mp_integer l1 = a->get_lower_bound();
 	mp_integer u1 = a->get_upper_bound();
 	mp_integer l2 = b->get_lower_bound();
 	mp_integer u2 = b->get_upper_bound();
+	
+	//No overlaping between the intervals so return false
 	if ((u1 < l2 && !b->is_minus_inf())|| (u2 < l1 && !a->is_minus_inf())) {
 		std::cout<<"Infeasible Branch\n";
 		return false ;
 	}
+	
+	//Compute the meet and return
 	else 
 		return meet(a,b,c);
 }
-
-
+/*Computes the interval range which is less than a given interval
+ * Input -> Four intervals, the integer is not required as input
+ * Output -> Two Intervals
+*/
 bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int l) {
 	mp_integer l1 = a->get_lower_bound();
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
 
-	std::cout<<"\n\n PRINTING RESULT : ";
-	std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
- 	if ( (!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
-		temp_a = a;
-		temp_b = b;
+	//std::cout<<"\n\n PRINTING RESULT : ";
+	//std::cout<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<" "<<"\n"; 	
+	
+	//The entire interval (a) lies to the left of the other interval (b). So return them as they are
+ 	if ( (!a->is_plus_inf()) && (u1 <= l2) && (!b->is_minus_inf()) ) {
+		temp_a->make_equal(*a);
+		temp_b->make_equal(*b);
+
+		//temp_b->print_interval();
  		return true;
  	}
+ 	
+ 	//The entire interval (a) lies to the right of the other interval (b). So return false
  	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
  		std::cout << "Invalid Branch \n";
 		 return false;
  	}
+ 	
+ 	//We compute the interval of (a) which is less than interval (b)
  	else {
 		temp_a->set_lower_bound(l1,a->is_minus_inf());
-		temp_b->set_upper_bound(min(u1, u2),a->is_plus_inf() && b->is_plus_inf());
+		temp_a->set_upper_bound(min(u1, u2),a->is_plus_inf() && b->is_plus_inf());
  	}
+ 	
+ 	//Prevents infinte looping
 	if(l == 0)
 	{	
+		//Interval of (b) which is greater than Interval (a)
 		if(greater_than(b,a,temp_b,temp_a,1)){}
 
 	}
 
 	//temp_a->print_interval();
 	//temp_b->print_interval();
+	
+	//Flag required for assert operations
 	maybe = true;
 	 return true;
 
@@ -210,20 +266,25 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
  		std::cout << "Invalid Branch \n";
 		 return false;
  	}
- 	else if ((!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf())) {
- 		temp_a = a;
-		temp_b = b;
+ 	else if ((!b->is_plus_inf()) && (u2 <= l1) && (!a->is_minus_inf())) {
+ 		std::cout<<"Entering HERE \n\n";
+ 		temp_a->make_equal(*a);
+		temp_b->make_equal(*b);
+
 		return true;
  	}
  	else {
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
  		temp_a->set_upper_bound(u1,a->is_plus_inf());
+ 		std::cout<<"After this : \n";
+ 		temp_a->print_interval();
  	}
  	
 	if(l == 0)
 		if(less_than(b,a,temp_b,temp_a,1)){}
 
 
+	std::cout<<"\n\nGreater than result : ";		
 	temp_a->print_interval();
 	temp_b->print_interval();	 
 	 maybe = true;
