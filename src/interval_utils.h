@@ -4,9 +4,10 @@
 
 #include "interval.h"
 extern bool maybe;
-//enum guard_resultt {ALWAYS_TRUE, NEVER_TRUE, MAYBE};
+
 
 void add(interval a, interval b, interval *c);
+void negate(interval *a, interval *temp);
 void negate(interval *a);
 void sub(interval a, interval b, interval *c);
 void multiply(interval a, interval b, interval *c);

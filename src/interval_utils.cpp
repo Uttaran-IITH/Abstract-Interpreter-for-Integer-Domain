@@ -39,25 +39,28 @@ void add(interval a, interval b, interval *c)
 }
 
 //Negates the interval (flips it)
-void negate(interval *a)
+void negate(interval *a, interval *temp)
 {
-	//Store the upper bound values and flags
-	mp_integer temp = a->get_upper_bound();
-	bool t = a->is_plus_inf();
+	temp->set_upper_bound(-a->get_lower_bound(),a->is_minus_inf());
 
 	//Set the lower bound as negation of the upper bound, copy infinity flag
-	a->set_upper_bound(-(a->get_lower_bound()), a->is_minus_inf());
 
 	//Set lower bound to stored upper bound but signs are flipped
-	a->set_lower_bound(-temp, t);
+	temp->set_lower_bound(-a->get_upper_bound(),a->is_plus_inf());
 }
 
-
+void negate(interval *a){
+	mp_integer t = a->get_upper_bound();
+	bool flag = a->is_plus_inf();
+	a->set_upper_bound(a->get_lower_bound(),a->is_minus_inf());
+	a->set_lower_bound(t, flag);
+}
 //Computes the difference between two intervals which is same as adding the negation
 void sub(interval a, interval b, interval *c)
 {
-	negate(&b);
-	add(a, b, c);
+	interval *temp = new interval(integer_type::SIGNED);
+	negate(&b,temp);
+	add(a, *temp, c);
 }
 
 //Multiplies two intervals and stores it in the 3rd argument
@@ -75,14 +78,14 @@ void multiply(interval a, interval b, interval *c)
 	if( (a.is_minus_inf() && (b.get_lower_bound() < 0 || b.get_upper_bound() < 0 || b.is_minus_inf())) || 
 		(b.is_minus_inf() && (a.get_lower_bound() < 0 || a.get_upper_bound() < 0)) || 
 		(a.is_plus_inf() && (b.is_plus_inf() || b.get_lower_bound() > 0 || b.get_upper_bound() > 0 )) ||
-		(b.is_plus_inf() && (a.get_lower_bound() > 0 && a.get_upper_bound() > 0))  ) 
+		(b.is_plus_inf() && (a.get_lower_bound() > 0 || a.get_upper_bound() > 0))  ) 
 		pos_inf = 1 ;
 
 	//Ways to get a negative infinity in the result
 	if( (a.is_minus_inf() && (b.get_lower_bound() > 0 || b.get_upper_bound() > 0 || b.is_plus_inf())) || 
 		(b.is_minus_inf() && (a.get_lower_bound() > 0 || a.get_upper_bound() > 0)) || 
 		(a.is_plus_inf() && (b.is_minus_inf() || b.get_lower_bound() < 0 || b.get_upper_bound() < 0 )) ||
-		(b.is_plus_inf() && (a.get_lower_bound() < 0 && a.get_upper_bound() < 0))  ) 
+		(b.is_plus_inf() && (a.get_lower_bound() < 0 || a.get_upper_bound() < 0))  ) 
 		neg_inf = 1 ;
 		
 	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
@@ -91,34 +94,44 @@ void multiply(interval a, interval b, interval *c)
 	c->set_lower_bound(n, neg_inf);
 }
 bool divide(interval a,interval b,interval *c){
-	if((b.get_lower_bound()==0 && !b.is_minus_inf()) || (b.get_upper_bound()==0 && !b.is_plus_inf())){
-		std::cout<<"Cannot divide by 0\n";
-		return false;
-	}
-	else{
-		mp_integer temp[] = {
- 		a.get_lower_bound() / b.get_lower_bound(),
- 		a.get_lower_bound() / b.get_upper_bound(),
- 		a.get_upper_bound() / b.get_lower_bound(),
- 		a.get_upper_bound() / b.get_upper_bound()
- 	};
-	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
- 	mp_integer n = min(min(min(temp[0],temp[1]),temp[2]),temp[3]);
-	if((!a.is_minus_inf() && !a.is_plus_inf()) && (b.is_plus_inf() || b.is_minus_inf())){
-		c->set_lower_bound(min(n,0),false);
-		c->set_upper_bound(max(m,0),false);
-	}
-	else if ((a.is_minus_inf() || a.is_plus_inf()) && (!b.is_plus_inf() && !b.is_minus_inf())){
-		c->set_lower_bound(n,a.is_minus_inf());
-		c->set_upper_bound(m,a.is_plus_inf());
-	}
-	else{
-		c->set_lower_bound(n,false);
-		c->set_upper_bound(m,false);
-	}
+	// if((b->get_lower_bound() < 0 || b->is_minus_inf()) && (b->get_upper_bound() > 0 || b->is_plus_inf()){
+	// 	std::cout<<"Cannot divide by 0\n";
+	// 	return false;
+	// }
+	// else if (b->get_upper_bound() == 0 && !b->is_plus_inf() && b->get_lower_bound() != 0 ){
+	// 	c->set_lower_bound(1,true);
+	// }
+	return true ;
 }
-	return true;
-}
+//	{
+// 		mp_integer temp[] = {
+//  		a.get_lower_bound() / b.get_lower_bound(),
+//  		a.get_lower_bound() / b.get_upper_bound(),
+//  		a.get_upper_bound() / b.get_lower_bound(),
+//  		a.get_upper_bound() / b.get_upper_bound()
+//  	};
+// 	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
+//  	mp_integer n = min(min(min(temp[0],temp[1]),temp[2]),temp[3]);
+// 	if((!a.is_minus_inf() && !a.is_plus_inf()) && (b.is_plus_inf() || b.is_minus_inf())){
+// 		if(b->is_plus_inf() && !b->is_minus_inf())
+// 			c->set_lower_bound(min(min(temp[0],temp[2]),0),false);
+// 		if (!b->is_plus_inf() && b->is_minus_inf())
+// 			c->set_upper_bound(max(max(0,temp[1]),temp[3]),false);
+// 		else
+// 		{
+// 			s->set
+// 		}
+// 	}
+// 	else if ((a.is_minus_inf() || a.is_plus_inf()) && (!b.is_plus_inf() && !b.is_minus_inf())){
+// 		c->set_lower_bound(n,a.is_minus_inf());
+// 		c->set_upper_bound(m,a.is_plus_inf());
+// 	}
+// 	else{
+// 		c->set_lower_bound(n,false);
+// 		c->set_upper_bound(m,false);
+// 	}
+// }
+// 	return true;
 void power(interval *a, unsigned int p) {
 	mp_integer n = pow(a->get_lower_bound(),p);
 	mp_integer m = pow(a->get_upper_bound(),p);

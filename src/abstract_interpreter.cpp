@@ -20,7 +20,16 @@ enum assert_status{NO_ASSERTION, ASSERTION_PASSED, ASSERTION_FAILED};
 
 assert_status status = NO_ASSERTION ;
 
-// Main Interpreter Function
+/*******************************************************************
+Function : run_interpreter
+
+Inputs : goto_model
+
+Outputs : void
+
+Purpose : Iterate over the goto-functions in goto_model
+*******************************************************************/
+
 void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 {
 	std::cout<<"Running Interpreter : \n";
@@ -32,64 +41,76 @@ void abstract_interpreter::run_interpreter(goto_modelt &goto_model)
 
 	Forall_goto_functions(f_it, goto_model.goto_functions)
 	{
-		//Run only for the 'main' function 
+		//Ignoring CPROVER_start and CPROVER_initialize
 		if(f_it->first == "main")
 		{	
 			loops(f_it->second.body);
 
-			//std::cout<<"Function : "<<f_it->first<<"\n\n";
-
-	  	for(goto_programt::instructionst::iterator \
-	      	it=(f_it->second).body.instructions.begin(); \
-	      	it!=(f_it->second).body.instructions.end(); )
-		{
-			goto_programt::instructiont instruction = *it ;
-
-			std::cout<<"Instruction : "<<as_string(ns, *it)<<"\n";
-			getchar();
-			bool target_changed = false;
-
-			switch(it->type)
+		  	for(goto_programt::instructionst::iterator \
+		      	it=(f_it->second).body.instructions.begin(); \
+		      	it!=(f_it->second).body.instructions.end(); )
 			{
-				case goto_program_instruction_typet::DECL :  handle_declaration(*it, goto_model); break;
+				goto_programt::instructiont instruction = *it ;
 
-				case goto_program_instruction_typet::ASSIGN : handle_assignments(*it, goto_model); break ;
+				std::cout<<"Instruction : "<<as_string(ns, *it)<<"\n";
+				getchar();
 
-				case goto_program_instruction_typet::GOTO : if(!check_if_loop(loops, it) && status == NO_ASSERTION) 
-																handle_goto(*it, goto_model, it, target_changed, loops, ns);
+				bool target_changed = false;
 
-															else if(!check_if_loop(loops, it) && status != NO_ASSERTION)
-															{
-																if(status == ASSERTION_FAILED)
+				switch(it->type)
+				{
+					case goto_program_instruction_typet::DECL :  handle_declaration(*it, goto_model); break;
+
+					case goto_program_instruction_typet::ASSIGN : handle_assignments(*it, goto_model); break ;
+
+					case goto_program_instruction_typet::GOTO : if(!check_if_loop(loops, it) && status == NO_ASSERTION) //Handling if..else (that donot correspond to assertions)
+																	handle_goto(*it, goto_model, it, target_changed, loops, ns);
+
+																//Handling 'if' Block succeeding an assertion	
+																else if(!check_if_loop(loops, it) && status != NO_ASSERTION)
 																{
-																	it = instruction.get_target();
-																	target_changed = true ;
+																	if(status == ASSERTION_FAILED)
+																	{
+																		it = instruction.get_target();
+																		target_changed = true ;
+																	}
+																	status = NO_ASSERTION ;
+
 																}
-																status = NO_ASSERTION ;
+																//Handling Loops
+																else
+																{
+																	handle_loops(loops.loop_map.find(it)->second, loops, goto_model, ns);
+																	it = instruction.get_target();
+																	target_changed = true ;   
+																}
+																break ;	
 
-															}
-															else
-															{
-																//std::cout<<"\n\n LOOP FOUND \n\n";
-																handle_loops(loops.loop_map.find(it)->second, loops, goto_model, ns);
-																it = instruction.get_target();
-																target_changed = true ;   
-															}
-															break ;	
-				case goto_program_instruction_typet::ASSERT : handle_assertions(*it, goto_model, ns); target_changed = false; break;											
-				
-				default: std::cout<<"Cannot Recognise the instruction\n";	
+					case goto_program_instruction_typet::ASSERT : handle_assertions(*it, goto_model, ns); target_changed = false; break;											
+					
+					default: std::cout<<"Cannot Recognise the instruction\n";	
+				}
+
+				print_all();
+
+				if(!target_changed)
+					it++;
 			}
-
-			print_all();
-
-			if(!target_changed)
-				it++;
-		}
 		}	
 	}
 }
 
+
+/*******************************************************************
+Function : check_if_loop
+
+Inputs : loops(for a goto-function), GOTO instruction to be checked
+
+Outputs : bool
+
+Purpose : check whether the GOTO statement is the header for a loop
+			return true if yes else no
+*******************************************************************/
 bool abstract_interpreter :: check_if_loop(natural_loops_mutablet &loops, 
 											goto_programt::targett &target)
 {
@@ -103,6 +124,15 @@ bool abstract_interpreter :: check_if_loop(natural_loops_mutablet &loops,
 }
 
 
+/*******************************************************************
+Function : print_all
+
+Inputs : void
+
+Outputs : void
+
+Purpose : print intervals for all the variables
+*******************************************************************/
 void abstract_interpreter :: print_all()
 {
 	std::map<irep_idt, interval*>::iterator it ;
@@ -119,13 +149,23 @@ void abstract_interpreter :: print_all()
 }
 
 
-// Handling Declarations
+/*******************************************************************
+Function : handle_declarations
+
+Inputs : instruction to be handled, goto_model
+
+Outputs : void
+
+Purpose : Add the declared variable to the interval_map according to
+		  its type(signed or unsigned)
+*******************************************************************/
 void abstract_interpreter :: handle_declaration(goto_programt::instructiont &instruction, goto_modelt &goto_model)
 {
 	code_declt decl = to_code_decl(instruction.code);
 	symbol_exprt symbol_expr = to_symbol_expr(decl.symbol());
 	const symbolt* symbol = goto_model.symbol_table.lookup(symbol_expr.get_identifier());
 
+	//For signed intergers
 	if(symbol->type.id() == ID_signedbv)
 	{
 		std::map<irep_idt, interval*>::iterator it ;
@@ -143,6 +183,7 @@ void abstract_interpreter :: handle_declaration(goto_programt::instructiont &ins
 		}
 	}
 
+	//For unsigned integers
 	else if(symbol->type.id() ==  ID_unsignedbv)
 	{
 		std::map<irep_idt, interval*>::iterator it ;
@@ -162,9 +203,21 @@ void abstract_interpreter :: handle_declaration(goto_programt::instructiont &ins
 }
 
 
+/****************************************************************************
+Function : handle_rhs
+
+Inputs : assign statement's rhs expression, goto_model
+
+Outputs : interval object (that the lhs of the assignment should be assigned)
+
+Purpose : Recursive function to calculate the resulting interval
+		  after all the operations that occur in the rhs expression
+*****************************************************************************/
 interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto_model)
 {
 	bool neg = false ;
+
+	//Handles (-) unary operator
 	if(can_cast_expr<unary_minus_exprt>(expression))
 	{
 		neg = true ;
@@ -172,60 +225,75 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 		expression = curr ;
 	}
 
+	//Base Case : symbol 
 	if(expression.id() == ID_symbol)
 	{
 		symbol_exprt sym_expr = to_symbol_expr(expression);
 		const symbolt* symbol = goto_model.symbol_table.lookup(sym_expr.get_identifier());
 		std::map<irep_idt, interval*>::iterator it ;
-		interval* object ;
+		interval* object = new interval(integer_type::SIGNED);
 
+		//Find the symbol in the interval_map
 		it = interval_map.find(symbol->name);
+		//object = it->second ;
 
-			object = it->second ;
+		//If (-) preceded then return the negated interval			
 		if(neg)
 		{	
-			negate(object);
+			negate(it->second, object);
 		}
-			return *object ;
+		else
+		{
+			object = it->second ;
+		}
+
+		return *object ;
 
 	}
 
+	//Base Case : constant
 	else if(expression.id() == ID_constant)
 	{
 		constant_exprt constant_expr = to_constant_expr(expression);
 		mp_integer value;
 		to_integer(constant_expr, value);
 		
-		//std::cout<<"Constant Found : "<<value<<"\n\n";
 		interval* constant = new interval(integer_type::SIGNED);
+		interval* object = new interval(integer_type::SIGNED);
 
-		// std::cout<<" LOWER  : "<<integer2string(binary2integer(id2string(constant_expr.get_value()), false))<<"\n";
-
+		//For constant c create the interval [c,c]
 		constant->set_lower_bound(value, false);
 		constant->set_upper_bound(value, false);
 
-		//std::cout<<"Constant Interval : " ;
-		//constant->print_interval();
-		//std::cout<<"\n";
-
+		// If (-) preceded, negate
 		if(neg)
 		{	
-			negate(constant);
+			negate(constant, object);
+		}
+		else
+		{
+			 object = constant ;
 		}
 
-		return *constant ;
+		return *object ;
 
 	}
+
+	//Recursive Cases
 	else
 	{
+		//Handling '+' operator
 		if(expression.id() == ID_plus)
 		{
-			//std::cout<<"Plus Expression : ";
 			plus_exprt plus_expr = to_plus_expr(expression);
+
+			//Call handle_rhs recursively for the two operands of plus
 			interval arg1 = handle_rhs(plus_expr.op0() , goto_model);
 			interval arg2 = handle_rhs(plus_expr.op1(), goto_model);
 
 			integer_type type = integer_type::SIGNED ; 
+
+			//If both arguments unsigned, the result cannot be signed
 			if(arg1.get_sign()  == integer_type::UNSIGNED &&
 				arg2.get_sign() == integer_type::UNSIGNED)
 			{
@@ -234,43 +302,42 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 			interval add_result(type) ;
 
+			//Call add and store result in add_result
 			add(arg1, arg2, &add_result);
 
-			//std::cout<<"After Adding : ";
-			//add_result.print_interval() ;
-			//std::cout<<"\n";
-
+			//If (-)preceded, regate
 			if(neg)
 			{	
 				negate(&add_result);
 			}
+
 			return add_result;
 		}
 
-		//FOR SUBTRACT CASE : Check on how to assign signed and unsigned
+		//Handling '-' binary operator
 		else if(expression.id() == ID_minus)
 		{
-			//std::cout<<"Subtract Expression : ";
+
 			minus_exprt sub_expr =  to_minus_expr(expression);
 
+			//Call handle_rhs recursively for the two operands of minus
 			interval arg1 = handle_rhs(sub_expr.op0() , goto_model);
 			interval arg2 = handle_rhs(sub_expr.op1(), goto_model);
 
+			//If both arguments unsigned, the result cannot be signed
 			integer_type type = integer_type::SIGNED ;
-			if(arg1.get_sign()  == integer_type::UNSIGNED &&
-				arg2.get_sign() == integer_type::UNSIGNED)
-			{
-				type = integer_type::UNSIGNED ;
-			}
+			// if(arg1.get_sign()  == integer_type::UNSIGNED &&
+			// 	arg2.get_sign() == integer_type::UNSIGNED)
+			// {
+			// 	type = integer_type::UNSIGNED ;
+			// }
 
 			interval sub_result(type);
 
+			//Subtract and store result in sub_result
 			sub(arg1, arg2, &sub_result);
 
-			//std::cout<<"After Subtraction : ";
-			//sub_result.print_interval() ;
-			//std::cout<<"\n";
-
+			// If (-) preceded, negate
 			if(neg)
 			{	
 				negate(&sub_result);
@@ -280,9 +347,10 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 
 		}
 
+		//Handling '*' operator
 		else if(expression.id() == ID_mult)
 		{
-			//std::cout<<"Multiply Expression : ";
+
 			mult_exprt mult_expr =  to_mult_expr(expression);
 
 			interval arg1 = handle_rhs(mult_expr.op0() , goto_model);
@@ -296,12 +364,7 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 			}
 
 			interval mult_result(type);
-
 			multiply(arg1, arg2, &mult_result);
-
-			//std::cout<<"After Multiply : ";
-			//mult_result.print_interval() ;
-			//std::cout<<"\n";
 
 			if(neg)
 			{	
@@ -310,9 +373,10 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 			return mult_result ;
 		}
 
+		//Handle '/' operator
 		else if(expression.id() == ID_div)
 		{
-			//std::cout<<"Divide Expression : ";
+
 			div_exprt div_expr = to_div_expr(expression);
 
 			interval arg1 = handle_rhs(div_expr.op0(), goto_model);
@@ -329,10 +393,6 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 			interval div_result(type);
 
 			divide(arg1, arg2, &div_result);
-
-			//std::cout<<"After Divide : ";
-			//div_result.print_interval() ;
-			//std::cout<<"\n";
 
 			if(neg)
 			{	
@@ -352,6 +412,17 @@ interval abstract_interpreter :: handle_rhs(exprt& expression, goto_modelt& goto
 }
 
 
+/*******************************************************************
+Function : handle_assignments
+
+Inputs : instruction to be handled, goto_model
+
+Outputs : void
+
+Purpose : Finds the lhs of the ASSIGN, calculates the interval to be
+		  assigned u=by calling handle_rhs() and set updates LHS 
+		  variable's value
+*******************************************************************/
 void abstract_interpreter :: handle_assignments(goto_programt::instructiont &instruction, goto_modelt &goto_model)
 {
 	code_assignt assign = to_code_assign(instruction.code);	
@@ -366,15 +437,8 @@ void abstract_interpreter :: handle_assignments(goto_programt::instructiont &ins
 		exprt expression = assign.rhs();
 		namespacet ns(goto_model.symbol_table);
 
-		//std::cout<<"RHS Expression  : "<<expr2c(expression, ns)<<"\n"; 
 		exprt simplified = simplify_expr(expression, ns);
-
-		//CHECK FOR CONSTANT PROPAGATION?? //MAYBE NOT //CONFIRM ONCE
-
-		//std::cout<<"Simplified Expression : "<<expr2c(simplified,ns)<<"\n";
 		interval temp = handle_rhs(expression, goto_model);
-
-
 		it->second->make_equal(temp);			
 
 	}
@@ -451,6 +515,32 @@ void abstract_interpreter :: set_rhs(exprt &rhs_expr, interval* &rhs , goto_mode
 
 void abstract_interpreter :: remove_not(exprt &expr, namespacet &ns)
 {	
+	if(expr.id() == ID_and)
+	{
+		exprt lhs = expr.op0();
+		exprt rhs = expr.op1();
+
+		remove_not(lhs,ns);
+		remove_not(rhs, ns);
+
+		exprt new_expr = and_exprt(lhs, rhs);
+
+		expr = new_expr ;
+	}
+
+	else if(expr.id() == ID_or)
+	{
+		exprt lhs = expr.op0();
+		exprt rhs = expr.op1();
+
+		remove_not(lhs,ns);
+		remove_not(rhs, ns);
+
+		exprt new_expr = or_exprt(lhs, rhs);
+
+		expr = new_expr ;		
+	}
+
 	if(can_cast_expr<not_exprt>)
 	{
 		exprt inside_expr = expr.op0();
@@ -737,10 +827,10 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		//bool take_branch ;
 		exprt expr_true = simplify_expr(expr,ns) ;
 		remove_not(expr_true, ns);
+		std::cout<<"EXPRESSION FOR ELSE : "<<expr2c(expr_true, ns);
 
 		expr.make_not();
 		exprt expr_false =  expr;
-
 		// std::cout<<"\n EXPRESSION TRUE : "<<expr2c(expr_true, ns)<<"\n";
 		// std::cout<<"\n EXPRESSION FALSE : "<<expr2c(expr_false, ns)<<"\n";
 		// std::cout<<"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n";
@@ -801,6 +891,7 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 			print_all();
 			copy_map(after_if_map);
 			restore_map(original_map);
+			check_condition(expr_true , goto_model, ns, true);
 
 			std::cout<<"INSIDE ELSE : \n\n";
 			print_all();
@@ -812,6 +903,9 @@ void abstract_interpreter :: handle_goto(goto_programt::instructiont &instructio
 		{
 			//std::cout<<"COMING IN ELSE BUT NO IF ^^^^^^^^^^^^^ \n\n";
 			//getchar();
+
+			check_condition(expr_true , goto_model, ns, true);
+			
 			it = target_if ;
 			iterate_over_else(it, goto_model, target_end, loops, ns);
 			else_implemented = true ;

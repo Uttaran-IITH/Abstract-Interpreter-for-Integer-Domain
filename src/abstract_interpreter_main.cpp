@@ -42,7 +42,7 @@ int main(int argc, const char **argv)
 			
 		abstract_interpreter interpreter ;
 
-		goto_model.goto_functions.output(ns, std::cout);
+		//goto_model.goto_functions.output(ns, std::cout);
 		interpreter.run_interpreter(goto_model);	
 }
 
