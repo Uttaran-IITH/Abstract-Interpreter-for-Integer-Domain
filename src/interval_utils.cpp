@@ -109,14 +109,14 @@ void multiply(interval a, interval b, interval *c)
 	if( (a.is_minus_inf() && (b.get_lower_bound() < 0 || b.get_upper_bound() < 0 || b.is_minus_inf())) || 
 		(b.is_minus_inf() && (a.get_lower_bound() < 0 || a.get_upper_bound() < 0)) || 
 		(a.is_plus_inf() && (b.is_plus_inf() || b.get_lower_bound() > 0 || b.get_upper_bound() > 0 )) ||
-		(b.is_plus_inf() && (a.get_lower_bound() > 0 && a.get_upper_bound() > 0))  ) 
+		(b.is_plus_inf() && (a.get_lower_bound() > 0 || a.get_upper_bound() > 0))  ) 
 		pos_inf = 1 ;
 
 	//Ways to get a negative infinity in the result
 	if( (a.is_minus_inf() && (b.get_lower_bound() > 0 || b.get_upper_bound() > 0 || b.is_plus_inf())) || 
 		(b.is_minus_inf() && (a.get_lower_bound() > 0 || a.get_upper_bound() > 0)) || 
 		(a.is_plus_inf() && (b.is_minus_inf() || b.get_lower_bound() < 0 || b.get_upper_bound() < 0 )) ||
-		(b.is_plus_inf() && (a.get_lower_bound() < 0 && a.get_upper_bound() < 0))  ) 
+		(b.is_plus_inf() && (a.get_lower_bound() < 0 || a.get_upper_bound() < 0))  ) 
 		neg_inf = 1 ;
 		
 	mp_integer m = max(max(max(temp[0],temp[1]),temp[2]),temp[3]);
@@ -133,14 +133,9 @@ void multiply(interval a, interval b, interval *c)
 */
 bool divide(interval a,interval b,interval *c){
 
-	//If the denominator interval is infinity in both directions
-	if(b.is_minus_inf() && b.is_plus_inf()){
-		c->set_lower_bound(-1,false);
-		c->set_upper_bound(1,false);
-		return true;
-	}
+	//If the denominator interval is infinity in both directions OR
 	//If the denominator has zero inside the interval
-	else if(b.get_lower_bound() * b.get_upper_bound() <= 0){
+	if((b.is_minus_inf() && b.is_plus_inf()) || (b.get_lower_bound() * b.get_upper_bound() <= 0)){
 		c->set_lower_bound(0,true);
 		c->set_upper_bound(0,true);
 		return true;
@@ -196,7 +191,7 @@ bool meet(interval *a, interval *b, interval* &c) {
 	
 	//The intervals don't overlap so return false
 	if ((u1 < l2 && !b->is_minus_inf()) || (u2 < l1 && !a->is_minus_inf())) {
-		std::cout << "Invalid";
+		std::cout << "\nInvalid Branch\n";
 		return false ;
 	}
 	
@@ -229,7 +224,7 @@ bool equals(interval *a, interval *b, interval* &c) {
 	
 	//No overlaping between the intervals so return false
 	if ((u1 < l2 && !b->is_minus_inf())|| (u2 < l1 && !a->is_minus_inf())) {
-		std::cout<<"Infeasible Branch\n";
+		std::cout<<"\nInfeasible Branch\n";
 		return false ;
 	}
 	
@@ -249,6 +244,7 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
  	mp_integer u1 = a->get_upper_bound();
  	mp_integer l2 = b->get_lower_bound();
  	mp_integer u2 = b->get_upper_bound();
+ 	std::cout<<"\nPrinting values \n"<<l1<<" "<<u1<<" "<<l2<<" "<<u2<<"\n";
 
 	//The entire interval (a) lies to the left of the other interval (b). So return them as they are
  	if ( (!a->is_plus_inf()) && (u1 <= l2) && (!b->is_minus_inf()) ) {
@@ -259,7 +255,7 @@ bool less_than(interval *a, interval *b, interval *temp_a, interval *temp_b, int
  	
  	//The entire interval (a) lies to the right of the other interval (b). So return false
  	else if ( (!b->is_plus_inf()) && (u2 < l1) && (!a->is_minus_inf()) ) {
- 		std::cout << "Invalid Branch \n";
+ 		std::cout << "\nInvalid Branch \n";
 		 return false;
  	}
  	
@@ -296,13 +292,12 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
 
 //The entire interval (a) lies to the left of the other interval (b). So return false
 	if ((!a->is_plus_inf()) && (u1 < l2) && (!b->is_minus_inf()) ) {
- 		std::cout << "Invalid Branch \n";
+ 		std::cout << "\nInvalid Branch \n";
 		 return false;
  	}
 
 //The entire interval (a) lies to the right of the other interval (b). So return them as they are
  	else if ((!b->is_plus_inf()) && (u2 <= l1) && (!a->is_minus_inf())) {
- 		std::cout<<"Entering HERE \n\n";
  		temp_a->make_equal(*a);
 		temp_b->make_equal(*b);
 
@@ -312,8 +307,6 @@ bool greater_than(interval *a, interval *b, interval *temp_a, interval *temp_b, 
  	else {
  		temp_a->set_lower_bound(max(l1,l2),a->is_minus_inf() && b->is_minus_inf());
  		temp_a->set_upper_bound(u1,a->is_plus_inf());
- 		std::cout<<"After this : \n";
- 		temp_a->print_interval();
  	}
 //Prevents infinite loop
 	if(l == 0)
@@ -354,7 +347,7 @@ bool not_equals(interval *a, interval *b) {
  	
 	//If both intervals are singleton sets and they are exactly equal then return false
 	if ((l1 == u1) && (u1 == l2) && (l2 == u2) && !a->is_minus_inf() && !a->is_plus_inf() && !b->is_plus_inf() && !b->is_minus_inf()){
-		 std::cout<<"Invalid Branch \n";
+		 std::cout<<"\nInvalid Branch \n";
 		 return false;
 	 }
 	 else

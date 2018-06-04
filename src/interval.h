@@ -6,16 +6,19 @@
 
 enum integer_type{SIGNED=1 ,  UNSIGNED=2 };
 
-
+//Represents a single interval corresponding a variable
 class interval
 {
 	mp_integer lower_bound ;
 	mp_integer upper_bound ;
 	bool plus_inf ;
 	bool minus_inf ;
+
+	//NOT FUNCTIONAL
 	integer_type sign ;
 
 	public :
+	
 	interval(integer_type type);
 	mp_integer get_lower_bound();
 	mp_integer get_upper_bound();
@@ -24,7 +27,6 @@ class interval
 	integer_type get_sign();
 	bool is_plus_inf();
 	bool is_minus_inf();
-
 	void print_interval();	
 	void make_equal(interval temp_interval);
 };
